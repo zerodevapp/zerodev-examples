@@ -22,6 +22,7 @@ Follow these steps to get this project up and running on your local machine:
    ```
 
 3. **Setup environment variables**
+
    Copy the `.env.example` file to `.env` and fill in the required values.
 
 4. **Run the script**
