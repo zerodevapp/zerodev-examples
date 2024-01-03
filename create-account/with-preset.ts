@@ -20,7 +20,7 @@ const main = async () => {
     signer,
 
     // optional
-    provider: "ALCHEMY", // defaults to a recommended provider
+    provider: "STACKUP", // defaults to a recommended provider
     index: BigInt(1), // defaults to 0
     usePaymaster: true, // defaults to true
   });
@@ -29,7 +29,7 @@ const main = async () => {
 
   const txnHash = await kernelClient.sendTransaction({
     to: zeroAddress,
-    value: 0n,
+    value: BigInt(0),
     data: "0x",
   });
 
@@ -39,7 +39,7 @@ const main = async () => {
     userOperation: {
       callData: await kernelClient.account.encodeCallData({
         to: zeroAddress,
-        value: 0n,
+        value: BigInt(0),
         data: "0x",
       }),
     },

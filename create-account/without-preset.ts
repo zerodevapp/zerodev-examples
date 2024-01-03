@@ -40,7 +40,7 @@ const main = async () => {
 
   const txnHash = await kernelClient.sendTransaction({
     to: zeroAddress,
-    value: 0n,
+    value: BigInt(0),
     data: "0x",
   });
 
@@ -50,7 +50,7 @@ const main = async () => {
     userOperation: {
       callData: await account.encodeCallData({
         to: zeroAddress,
-        value: 0n,
+        value: BigInt(0),
         data: "0x",
       }),
     },
