@@ -1,0 +1,17 @@
+{
+  "name": "kerneljs-examples",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@kerneljs/core": "^0.0.1-alpha.6",
+    "@kerneljs/ecdsa-validator": "^0.0.1-alpha.12",
+    "@kerneljs/presets": "^0.0.1-alpha.4",
+    "permissionless": "^0.0.20",
+    "ts-node": "^10.9.2",
+    "viem": "^1.21.4"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1",
+    "typescript": "^5.2.2"
+  }
+}
