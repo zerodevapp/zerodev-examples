@@ -23,7 +23,7 @@ Follow these steps to get this project up and running on your local machine:
 
 3. **Setup environment variables**
 
-   Copy the `.env.example` file to `.env` and fill in the required values.
+   Copy the `.env.example` file to `.env` and fill in the required values (most examples only require a few of these env vars)
 
    ```bash
     cp .env.example .env
