@@ -5,7 +5,7 @@
   "dependencies": {
     "@kerneljs/core": "^0.0.1-alpha.6",
     "@kerneljs/ecdsa-validator": "^0.0.1-alpha.12",
-    "@kerneljs/presets": "^0.0.1-alpha.4",
+    "@kerneljs/presets": "^0.0.1-alpha.5",
     "permissionless": "^0.0.20",
     "viem": "^1.21.4"
   },
