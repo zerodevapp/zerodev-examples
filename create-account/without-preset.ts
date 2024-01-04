@@ -1,7 +1,7 @@
 import "dotenv/config"
 import {
   createKernelAccount,
-  createKernelPaymasterClient,
+  createZeroDevPaymasterClient,
 } from "@kerneljs/core"
 import { signerToEcdsaValidator } from "@kerneljs/ecdsa-validator"
 import { UserOperation, createSmartAccountClient } from "permissionless"
@@ -33,7 +33,7 @@ const main = async () => {
     chain: polygonMumbai,
     transport: http(process.env.BUNDLER_RPC),
     sponsorUserOperation: async ({ userOperation }): Promise<UserOperation> => {
-      const kernelPaymaster = createKernelPaymasterClient({
+      const kernelPaymaster = createZeroDevPaymasterClient({
         chain: polygonMumbai,
         transport: http(process.env.PAYMASTER_RPC),
       })
