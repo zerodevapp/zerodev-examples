@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@kerneljs/core": "^0.0.1-alpha.6",
+    "@kerneljs/core": "^0.0.1-alpha.8",
     "@kerneljs/ecdsa-validator": "^0.0.1-alpha.12",
     "@kerneljs/presets": "^0.0.1-alpha.5",
     "permissionless": "^0.0.20",
