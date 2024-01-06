@@ -2,9 +2,10 @@ import "dotenv/config"
 import {
   createKernelAccount,
   createZeroDevPaymasterClient,
+  createKernelAccountClient,
 } from "@kerneljs/core"
 import { signerToEcdsaValidator } from "@kerneljs/ecdsa-validator"
-import { UserOperation, createSmartAccountClient } from "permissionless"
+import { UserOperation } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
@@ -28,7 +29,7 @@ const main = async () => {
     plugin: ecdsaValidator,
   })
 
-  const kernelClient = createSmartAccountClient({
+  const kernelClient = createKernelAccountClient({
     account,
     chain: polygonMumbai,
     transport: http(process.env.BUNDLER_RPC),
