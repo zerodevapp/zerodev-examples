@@ -1,6 +1,6 @@
 import "dotenv/config"
-import { zeroAddress } from "viem"
 import { getKernelClient } from "../utils"
+import { zeroAddress } from "viem"
 
 async function main() {
   const kernelClient = await getKernelClient()
@@ -13,6 +13,7 @@ async function main() {
         to: zeroAddress,
         value: BigInt(0),
         data: "0x",
+        callType: "delegatecall", // default to "call"
       }),
     },
   })
