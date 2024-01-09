@@ -1,6 +1,7 @@
 import "dotenv/config"
 import { zeroAddress } from "viem"
 import { getKernelClient } from "../utils"
+import { bundlerActions } from "permissionless"
 
 async function main() {
   const kernelClient = await getKernelClient()
@@ -18,6 +19,14 @@ async function main() {
   })
 
   console.log("UserOp hash:", userOpHash)
+  console.log("Waiting for UserOp to complete...")
+
+  const bundlerClient = kernelClient.extend(bundlerActions)
+  await bundlerClient.waitForUserOperationReceipt({
+    hash: userOpHash,
+  })
+
+  console.log("UserOp completed")
 }
 
 main()
