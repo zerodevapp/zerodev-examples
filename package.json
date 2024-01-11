@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@kerneljs/core": "^0.0.1-alpha.11",
-    "@kerneljs/ecdsa-validator": "^0.0.1-alpha.13",
-    "@kerneljs/presets": "^0.0.1-alpha.7",
+    "@kerneljs/core": "^0.0.1-alpha.12",
+    "@kerneljs/ecdsa-validator": "^0.0.1-alpha.14",
+    "@kerneljs/presets": "^0.0.1-alpha.8",
+    "@kerneljs/session-key": "^0.0.1-alpha.0",
     "permissionless": "^0.0.20",
     "viem": "^1.21.4"
   },
