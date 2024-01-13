@@ -45,7 +45,7 @@ const main = async () => {
       })
     }
   })
-  console.log("Waiting for UserOp:", userOpHash)
+  console.log("Submitted UserOp:", userOpHash)
 
   // Wait for the UserOp to be included on-chain
   const bundlerClient = kernelClient.extend(bundlerActions)
@@ -53,6 +53,7 @@ const main = async () => {
   await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
   })
+  console.log("UserOp confirmed")
 
   // Print NFT balance
   const publicClient = kernelClient.extend(publicActions)
