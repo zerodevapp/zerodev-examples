@@ -50,21 +50,21 @@ const main = async () => {
   // Wait for the UserOp to be included on-chain
   const bundlerClient = kernelClient.extend(bundlerActions)
 
-  await bundlerClient.waitForUserOperationReceipt({
+  const receipt = await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
   })
-  console.log("UserOp confirmed")
+  console.log("UserOp confirmed:", receipt.userOpHash)
 
   // Print NFT balance
   const publicClient = kernelClient.extend(publicActions)
 
-  const nftBalanceAfter = await publicClient.readContract({
+  const nftBalance = await publicClient.readContract({
     address: contractAddress,
     abi: contractABI,
     functionName: 'balanceOf',
     args: [accountAddress],
   })
-  console.log(`NFT balance: ${nftBalanceAfter}`)
+  console.log(`NFT balance: ${nftBalance}`)
 }
 
 main()
