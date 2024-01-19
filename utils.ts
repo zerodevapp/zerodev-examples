@@ -19,7 +19,5 @@ export const getKernelClient = async () => {
     chain: polygonMumbai,
     projectId: zeroDevProjectId,
     signer,
-
-    provider: "ALCHEMY",
   })
 }

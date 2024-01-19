@@ -26,7 +26,9 @@ const main = async () => {
   })
 
   const account = await createKernelAccount(publicClient, {
-    plugin: ecdsaValidator,
+    plugins: {
+      validator: ecdsaValidator,
+    }
   })
 
   const kernelClient = createKernelAccountClient({
