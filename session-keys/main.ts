@@ -10,14 +10,14 @@ import {
   signerToSessionKeyValidator,
   ParamOperator,
   serializeSessionKeyAccount,
-  deserializeSessionKeyAccount
+  deserializeSessionKeyAccount,
+  oneAddress,
 } from "@kerneljs/session-key"
 import { UserOperation } from "permissionless"
 import {
   http,
   Hex,
   createPublicClient,
-  zeroAddress,
   parseAbi,
   encodeFunctionData,
 } from "viem"
@@ -61,9 +61,10 @@ const createSessionKey = async () => {
   // You only need the session key signer's address in order to create a session key
   const emptySessionKeySigner = addressToEmptyAccount(sessionKeySigner.address)
 
-  const sessionKeyPlugin = await signerToSessionKeyValidator(publicClient, {
+  const sessionKeyValidator = await signerToSessionKeyValidator(publicClient, {
     signer: emptySessionKeySigner,
     validatorData: {
+      paymaster: oneAddress,
       permissions: [
         {
           target: contractAddress,
@@ -92,7 +93,7 @@ const createSessionKey = async () => {
   const sessionKeyAccount = await createKernelAccount(publicClient, {
     plugins: {
       defaultValidator: ecdsaValidator,
-      validator: sessionKeyPlugin,
+      validator: sessionKeyValidator,
     },
   })
 
