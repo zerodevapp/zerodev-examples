@@ -20,6 +20,7 @@ import {
   createPublicClient,
   parseAbi,
   encodeFunctionData,
+  Address,
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
@@ -43,10 +44,7 @@ const contractABI = parseAbi([
   "function balanceOf(address owner) external view returns (uint256 balance)",
 ])
 
-const sessionPrivateKey = generatePrivateKey()
-const sessionKeySigner = privateKeyToAccount(sessionPrivateKey)
-
-const createSessionKey = async () => {
+const createSessionKey = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
   })
@@ -58,8 +56,9 @@ const createSessionKey = async () => {
   })
   console.log("Account address:", masterAccount.address)
 
-  // You only need the session key signer's address in order to create a session key
-  const emptySessionKeySigner = addressToEmptyAccount(sessionKeySigner.address)
+  // Create an "empty account" as the signer -- you only need the public
+  // key (address) to do this.
+  const emptySessionKeySigner = addressToEmptyAccount(sessionKeyAddress)
 
   const sessionKeyValidator = await signerToSessionKeyValidator(publicClient, {
     signer: emptySessionKeySigner,
@@ -100,7 +99,7 @@ const createSessionKey = async () => {
   return await serializeSessionKeyAccount(sessionKeyAccount)
 }
 
-const useSessionKey = async (serializedSessionKey: string) => {
+const useSessionKey = async (serializedSessionKey: string, sessionKeySigner: any) => {
   const sessionKeyAccount = await deserializeSessionKeyAccount(publicClient, serializedSessionKey, sessionKeySigner)
 
   const kernelClient = createKernelAccountClient({
@@ -149,13 +148,17 @@ const useSessionKey = async (serializedSessionKey: string) => {
 
 const main = async () => {
 
-  // Create a session key.
-  // This is typically done by the owner
-  const serializedSessionKey = await createSessionKey()
+  // The agent creates a public-private key pair and sends
+  // the public key (address) to the owner.
+  const sessionPrivateKey = generatePrivateKey()
+  const sessionKeySigner = privateKeyToAccount(sessionPrivateKey)
 
-  // Use a session key.
-  // Presumably, the session key is sent to the agent.
-  await useSessionKey(serializedSessionKey)
+  // The owner authorizes the public key by signing it and sending
+  // back the signature
+  const serializedSessionKey = await createSessionKey(sessionKeySigner.address)
+
+  // The agent constructs a full session key
+  await useSessionKey(serializedSessionKey, sessionKeySigner)
 
 }
 
