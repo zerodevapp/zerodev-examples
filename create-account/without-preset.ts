@@ -3,8 +3,8 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
   createKernelAccountClient,
-} from "@kerneljs/core"
-import { signerToEcdsaValidator } from "@kerneljs/ecdsa-validator"
+} from "@zerodev/sdk"
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { UserOperation } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"

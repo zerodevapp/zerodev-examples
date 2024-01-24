@@ -3,16 +3,17 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
   createKernelAccountClient,
-} from "@kerneljs/core"
-import { signerToEcdsaValidator } from "@kerneljs/ecdsa-validator"
+} from "@zerodev/sdk"
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import {
   signerToSessionKeyValidator,
   ParamOperator,
   serializeSessionKeyAccount,
   deserializeSessionKeyAccount,
   oneAddress,
-} from "@kerneljs/session-key"
-import { UserOperation } from "permissionless"
+  revokeSessionKey,
+} from "@zerodev/session-key"
+import { UserOperation, bundlerActions } from "permissionless"
 import {
   http,
   Hex,
@@ -32,6 +33,7 @@ if (
 }
 
 const publicClient = createPublicClient({
+  chain: polygonMumbai,
   transport: http(process.env.BUNDLER_RPC),
 })
 
@@ -41,10 +43,10 @@ const contractABI = parseAbi([
   "function mint(address _to) public",
   "function balanceOf(address owner) external view returns (uint256 balance)",
 ])
+const sessionPrivateKey = generatePrivateKey()
+const sessionKeySigner = privateKeyToAccount(sessionPrivateKey)
 
 const createSessionKey = async () => {
-  const sessionPrivateKey = generatePrivateKey()
-  const sessionKeySigner = privateKeyToAccount(sessionPrivateKey)
 
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
@@ -130,6 +132,12 @@ const useSessionKey = async (serializedSessionKey: string) => {
   })
 
   console.log("userOp hash:", userOpHash)
+
+  // wait for userop
+  const bundlerClient = kernelClient.extend(bundlerActions)
+  await bundlerClient.waitForUserOperationReceipt({
+    hash: userOpHash,
+  })
 }
 
 const main = async () => {
@@ -138,6 +146,42 @@ const main = async () => {
   const serializedSessionKey = await createSessionKey()
 
   // The agent reconstructs the session key using the serialized value
+  await useSessionKey(serializedSessionKey)
+
+  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+    signer,
+  })
+
+  const masterAccount = await createKernelAccount(publicClient, {
+    plugins: {
+      validator: ecdsaValidator,
+    },
+  })
+
+  const kernelClient = createKernelAccountClient({
+    account: masterAccount,
+    chain: polygonMumbai,
+    transport: http(process.env.BUNDLER_RPC),
+    sponsorUserOperation: async ({ userOperation }): Promise<UserOperation> => {
+      const kernelPaymaster = createZeroDevPaymasterClient({
+        chain: polygonMumbai,
+        transport: http(process.env.PAYMASTER_RPC),
+      })
+      return kernelPaymaster.sponsorUserOperation({
+        userOperation,
+      })
+    },
+  })
+
+  const revokeHash = await revokeSessionKey(kernelClient)
+
+  const bundlerClient = kernelClient.extend(bundlerActions)
+  await bundlerClient.waitForUserOperationReceipt({
+    hash: revokeHash,
+  })
+
+  console.log('finished revoking session key:', revokeHash)
+
   await useSessionKey(serializedSessionKey)
 
 }

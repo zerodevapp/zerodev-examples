@@ -4,15 +4,15 @@ import {
   createZeroDevPaymasterClient,
   createKernelAccountClient,
   addressToEmptyAccount,
-} from "@kerneljs/core"
-import { signerToEcdsaValidator } from "@kerneljs/ecdsa-validator"
+} from "@zerodev/sdk"
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import {
   signerToSessionKeyValidator,
   ParamOperator,
   serializeSessionKeyAccount,
   deserializeSessionKeyAccount,
   oneAddress,
-} from "@kerneljs/session-key"
+} from "@zerodev/session-key"
 import { UserOperation } from "permissionless"
 import {
   http,

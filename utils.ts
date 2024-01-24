@@ -1,6 +1,6 @@
 // Utilities for examples
 
-import { createEcdsaKernelAccountClient } from "@kerneljs/presets/zerodev"
+import { createEcdsaKernelAccountClient } from "@zerodev/presets/zerodev"
 import { Hex } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"

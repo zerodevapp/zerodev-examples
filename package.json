@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@kerneljs/core": "^0.0.1-alpha.16",
-    "@kerneljs/ecdsa-validator": "^0.0.1-alpha.16",
-    "@kerneljs/presets": "^0.0.1-alpha.10",
-    "@kerneljs/session-key": "^0.0.1-alpha.6",
-    "permissionless": "^0.0.20",
-    "viem": "^1.21.4"
+    "@zerodev/sdk": "^5.0.0-beta.0",
+    "@zerodev/ecdsa-validator": "^5.0.0-beta.0",
+    "@zerodev/presets": "^5.0.0-beta.0",
+    "@zerodev/session-key": "^5.0.0-beta.0",
+    "permissionless": "^0.0.30",
+    "viem": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",

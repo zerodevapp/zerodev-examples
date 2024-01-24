@@ -1,7 +1,7 @@
 import "dotenv/config"
 import { parseAbi, publicActions } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { createEcdsaKernelAccountClient } from "@kerneljs/presets/zerodev"
+import { createEcdsaKernelAccountClient } from "@zerodev/presets/zerodev"
 import { polygonMumbai } from "viem/chains"
 import { encodeFunctionData } from "viem"
 import { bundlerActions } from "permissionless"

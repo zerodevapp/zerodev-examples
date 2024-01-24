@@ -1,4 +1,4 @@
-# Kernel.js Examples
+# ZeroDev Examples
 
 ## Setup and Installation
 
@@ -9,7 +9,7 @@ Follow these steps to get this project up and running on your local machine:
    Use the following command to clone this repository to your local machine:
 
    ```bash
-   git clone git@github.com:zerodevapp/kernel.js-examples.git
+   git clone git@github.com:zerodevapp/zerodev-examples.git
    ```
 
 2. **Install dependencies**
@@ -17,7 +17,7 @@ Follow these steps to get this project up and running on your local machine:
    Navigate to the project directory and install the dependencies:
 
    ```bash
-   cd kernel.js-examples
+   cd zerodev-examples
    npm install
    ```
 
