@@ -15,7 +15,6 @@ import {
 import { UserOperation, bundlerActions } from "permissionless"
 import {
   http,
-  Hex,
   createPublicClient,
   parseAbi,
   encodeFunctionData,
@@ -36,7 +35,7 @@ const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
 })
 
-const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
+const signer1 = privateKeyToAccount(generatePrivateKey())
 const signer2 = privateKeyToAccount(generatePrivateKey())
 const signer3 = privateKeyToAccount(generatePrivateKey())
 
@@ -55,11 +54,12 @@ const createSessionKey = async () => {
       threshold: 100,
       delay: 0,
       signers: [
-        { address: signer.address, weight: 100 },
-        { address: signer2.address, weight: 50 }
+        { address: signer1.address, weight: 100 },
+        { address: signer2.address, weight: 50 },
+        { address: signer3.address, weight: 50 },
       ]
     },
-    signers: [signer3]
+    signers: [signer2, signer3],
   })
 
   const masterAccount = await createKernelAccount(publicClient, {

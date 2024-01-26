@@ -18,7 +18,7 @@ const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
 })
 
-const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
+const signer1 = privateKeyToAccount(generatePrivateKey())
 const signer2 = privateKeyToAccount(generatePrivateKey())
 const signer3 = privateKeyToAccount(generatePrivateKey())
 
@@ -28,7 +28,7 @@ const main = async () => {
       threshold: 100,
       delay: 0,
       signers: [
-        { address: signer.address, weight: 100 },
+        { address: signer1.address, weight: 100 },
         { address: signer2.address, weight: 50 },
         { address: signer3.address, weight: 50 },
       ]
