@@ -36,11 +36,11 @@ const main = async () => {
     chain: polygonMumbai,
     transport: http(process.env.BUNDLER_RPC),
     sponsorUserOperation: async ({ userOperation }): Promise<UserOperation> => {
-      const kernelPaymaster = createZeroDevPaymasterClient({
+      const paymasterClient = createZeroDevPaymasterClient({
         chain: polygonMumbai,
         transport: http(process.env.PAYMASTER_RPC),
       })
-      return kernelPaymaster.sponsorUserOperation({
+      return paymasterClient.sponsorUserOperation({
         userOperation,
       })
     },
