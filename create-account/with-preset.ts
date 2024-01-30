@@ -22,7 +22,7 @@ const main = async () => {
     // optional
     provider: "STACKUP", // defaults to a recommended provider
     index: BigInt(1), // defaults to 0
-    usePaymaster: true, // defaults to true
+    paymaster: 'SPONSOR', // defaults to SPONSOR
   })
 
   console.log("My account:", kernelClient.account.address)

@@ -94,7 +94,7 @@ const main = async () => {
     hash: userOpHash,
   })
 
-  console.log("UserOp completed:", userOpHash)
+  console.log("UserOp completed")
 }
 
 main()
