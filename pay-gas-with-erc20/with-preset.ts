@@ -1,6 +1,6 @@
 import "dotenv/config"
 import { createEcdsaKernelAccountClient } from "@zerodev/presets/zerodev"
-import { Hex, encodeFunctionData, http, parseAbi, zeroAddress } from "viem"
+import { Hex, encodeFunctionData, http, parseAbi, parseEther, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
 import { createZeroDevPaymasterClient, gasTokenAddresses, getERC20PaymasterApproveCall } from "@zerodev/sdk"
@@ -55,7 +55,7 @@ const main = async () => {
         },
         await getERC20PaymasterApproveCall(paymasterClient, {
           gasToken: gasTokenAddresses[polygonMumbai.id]["6TEST"],
-          approveAmount: BigInt(100000),
+          approveAmount: parseEther('1'),
         }),
         {
           to: zeroAddress,

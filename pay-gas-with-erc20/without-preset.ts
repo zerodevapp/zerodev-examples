@@ -8,7 +8,7 @@ import {
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { UserOperation, bundlerActions } from "permissionless"
-import { http, Hex, createPublicClient, zeroAddress, encodeFunctionData, parseAbi } from "viem"
+import { http, Hex, createPublicClient, zeroAddress, encodeFunctionData, parseAbi, parseEther } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
 
@@ -76,7 +76,7 @@ const main = async () => {
         },
         await getERC20PaymasterApproveCall(paymasterClient, {
           gasToken: gasTokenAddresses[polygonMumbai.id]["6TEST"],
-          approveAmount: BigInt(100000),
+          approveAmount: parseEther('0.1'),
         }),
         {
           to: zeroAddress,
