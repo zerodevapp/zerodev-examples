@@ -26,7 +26,6 @@ const main = async () => {
   const multisigValidator = await createWeightedECDSAValidator(publicClient, {
     config: {
       threshold: 100,
-      delay: 0,
       signers: [
         { address: signer1.address, weight: 100 },
         { address: signer2.address, weight: 50 },
