@@ -33,7 +33,7 @@ const main = async () => {
 
   const account = await createKernelAccount(publicClient, {
     plugins: {
-      validator: ecdsaValidator,
+      sudo: ecdsaValidator,
     }
   })
 

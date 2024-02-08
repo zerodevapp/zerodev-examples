@@ -63,7 +63,7 @@ const createSessionKey = async () => {
 
   const masterAccount = await createKernelAccount(publicClient, {
     plugins: {
-      validator: multisigValidator,
+      sudo: multisigValidator,
     },
   })
   console.log("Account address:", masterAccount.address)
@@ -99,8 +99,8 @@ const createSessionKey = async () => {
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
     plugins: {
-      defaultValidator: multisigValidator,
-      validator: sessionKeyValidator,
+      sudo: multisigValidator,
+      regular: sessionKeyValidator,
     },
   })
 

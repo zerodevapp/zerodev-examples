@@ -41,7 +41,7 @@ const main = async () => {
 
   const account = await createKernelAccount(publicClient, {
     plugins: {
-      validator: multisigValidator,
+      sudo: multisigValidator,
     }
   })
 
@@ -90,7 +90,7 @@ const main = async () => {
   const account2 = await createKernelAccount(publicClient, {
     deployedAccountAddress: account.address,
     plugins: {
-      validator: multisigValidator2,
+      sudo: multisigValidator2,
     }
   })
 
