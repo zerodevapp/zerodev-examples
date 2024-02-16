@@ -21,6 +21,8 @@ import {
   parseAbi,
   encodeFunctionData,
   Address,
+  zeroAddress,
+  toFunctionSelector,
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
@@ -93,6 +95,10 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
     plugins: {
       sudo: ecdsaValidator,
       regular: sessionKeyValidator,
+      executorData: {
+        executor: zeroAddress,
+        selector: toFunctionSelector("executeDelegateCall(address, bytes)"),
+      },
     },
   })
 
@@ -127,6 +133,7 @@ const useSessionKey = async (serializedSessionKey: string, sessionKeySigner: any
           functionName: "mint",
           args: [sessionKeyAccount.address],
         }),
+        callType: 'delegatecall',
       }),
     },
   })
