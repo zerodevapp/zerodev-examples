@@ -31,8 +31,8 @@ Follow these steps to get this project up and running on your local machine:
 
 4. **Run the script**
 
-   Run the script using the following command:
+   Run any of the example scripts using the following command:
 
    ```bash
-   npx ts-node create-account/with-preset.ts
+   npx ts-node path/to/script.ts
    ```
