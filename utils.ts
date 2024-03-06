@@ -37,9 +37,9 @@ export const getKernelV1Account = async (): Promise<SmartAccount> => {
     throw new Error("PRIVATE_KEY environment variable not set")
   }
 
-  const rpcUrl = process.env.RPC_URL
+  const rpcUrl = process.env.BUNDLER_RPC
   if (!rpcUrl) {
-    throw new Error("RPC_URL environment variable not set")
+    throw new Error("BUNDLER_RPC environment variable not set")
   }
 
   const publicClient = createPublicClient({
