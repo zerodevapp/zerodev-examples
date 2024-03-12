@@ -17,7 +17,7 @@ import {
   createWeightedECDSAValidator,
   getUpdateConfigCall
 } from "@zerodev/weighted-ecdsa-validator"
-import { WeightedValidatorAbi } from "@zerodev/weighted-ecdsa-validator/abi"
+import { WeightedValidatorAbi } from "./abi"
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -162,6 +162,76 @@ const main = async () => {
     value: BigInt(0),
     data: "0x"
   })
+  console.log("userOp sent")
+
+  const multisigValidator3 = await createWeightedECDSAValidator(publicClient, {
+    signers: [signer2, signer3]
+  })
+
+  const account3 = await createKernelAccount(publicClient, {
+    deployedAccountAddress: account.address,
+    plugins: {
+      sudo: multisigValidator3
+    }
+  })
+
+  const kernelClient3 = createKernelAccountClient({
+    account: account3,
+    chain: polygonMumbai,
+    transport: http(process.env.BUNDLER_RPC),
+    sponsorUserOperation: async ({ userOperation }): Promise<UserOperation> => {
+      const kernelPaymaster = createZeroDevPaymasterClient({
+        chain: polygonMumbai,
+        transport: http(process.env.PAYMASTER_RPC)
+      })
+      return kernelPaymaster.sponsorUserOperation({
+        userOperation
+      })
+    }
+  })
+
+  console.log("sending userOp with signer 2 and 3 again...")
+  await kernelClient3.sendTransaction({
+    to: zeroAddress,
+    value: BigInt(0),
+    data: "0x"
+  })
+  console.log("userOp sent")
+
+  const multisigValidator4 = await createWeightedECDSAValidator(publicClient, {
+    signers: [signer1, signer3]
+  })
+
+  const account4 = await createKernelAccount(publicClient, {
+    deployedAccountAddress: account.address,
+    plugins: {
+      sudo: multisigValidator4
+    }
+  })
+
+  const kernelClient4 = createKernelAccountClient({
+    account: account4,
+    chain: polygonMumbai,
+    transport: http(process.env.BUNDLER_RPC),
+    sponsorUserOperation: async ({ userOperation }): Promise<UserOperation> => {
+      const kernelPaymaster = createZeroDevPaymasterClient({
+        chain: polygonMumbai,
+        transport: http(process.env.PAYMASTER_RPC)
+      })
+      return kernelPaymaster.sponsorUserOperation({
+        userOperation
+      })
+    }
+  })
+
+  console.log("sending userOp with signer 1 and 3...")
+
+  await kernelClient4.sendTransaction({
+    to: zeroAddress,
+    value: BigInt(0),
+    data: "0x"
+  })
+
   console.log("userOp sent")
 }
 
