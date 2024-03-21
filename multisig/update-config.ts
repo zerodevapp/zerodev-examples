@@ -9,7 +9,7 @@ import {
   createZeroDevPaymasterClient,
   createKernelAccountClient
 } from "@zerodev/sdk"
-import { UserOperation } from "permissionless"
+import { UserOperation, bundlerActions } from "permissionless"
 import { http, createPublicClient, zeroAddress } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
@@ -34,7 +34,6 @@ const publicClient = createPublicClient({
 const signer1 = privateKeyToAccount(generatePrivateKey())
 const signer2 = privateKeyToAccount(generatePrivateKey())
 const signer3 = privateKeyToAccount(generatePrivateKey())
-
 console.log("signer1:", signer1.address)
 console.log("signer2:", signer2.address)
 console.log("signer3:", signer3.address)
@@ -75,11 +74,17 @@ const main = async () => {
   console.log("My account:", kernelClient.account.address)
 
   console.log("sending userOp with signer 1 and 2...")
-  await kernelClient.sendTransaction({
-    to: zeroAddress,
-    value: BigInt(0),
-    data: "0x"
+  const op1Hash = await kernelClient.sendUserOperation({
+    userOperation: {
+      callData: "0x"
+    }
   })
+
+  const bundlerClient = kernelClient.extend(bundlerActions)
+  await bundlerClient.waitForUserOperationReceipt({
+    hash: op1Hash
+  })
+
   console.log("userOp sent")
 
   console.log("sending second userOp with signer 1 and 2...")
@@ -91,7 +96,7 @@ const main = async () => {
   console.log("second userOp sent")
 
   const storageBefore = await publicClient.readContract({
-    address: "0xf230ac0AD98F81cd9806b5A6B16f8Fb92Fb6Fc48",
+    address: "0x8012D9ee59176Cb01a4aa80fCFE6f5E8bA58d4fb",
     abi: WeightedValidatorAbi,
     functionName: "weightedStorage",
     args: [account.address]
@@ -114,7 +119,7 @@ const main = async () => {
   console.log("userOp sent")
 
   const storageAfter = await publicClient.readContract({
-    address: "0xf230ac0AD98F81cd9806b5A6B16f8Fb92Fb6Fc48",
+    address: "0x8012D9ee59176Cb01a4aa80fCFE6f5E8bA58d4fb",
     abi: WeightedValidatorAbi,
     functionName: "weightedStorage",
     args: [account.address]
