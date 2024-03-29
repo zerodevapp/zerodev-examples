@@ -15,7 +15,8 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
 import {
   createWeightedECDSAValidator,
-  getUpdateConfigCall
+  getUpdateConfigCall,
+  getCurrentSigners
 } from "@zerodev/weighted-ecdsa-validator"
 import { WeightedValidatorAbi } from "./abi"
 
@@ -86,6 +87,12 @@ const main = async () => {
   })
 
   console.log("userOp sent")
+
+  const currentSigners = await getCurrentSigners(publicClient, {
+    multiSigAccountAddress: account.address
+  })
+
+  console.log("current signers:", currentSigners)
 
   console.log("sending second userOp with signer 1 and 2...")
   await kernelClient.sendTransaction({
