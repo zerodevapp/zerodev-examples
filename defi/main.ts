@@ -6,14 +6,14 @@ import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient, createClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { arbitrum } from "viem/chains"
+import { mainnet } from "viem/chains"
 import { createDefiClient, defiTokenAddresses } from "@zerodev/defi"
 
 if (!process.env.BUNDLER_RPC || !process.env.ZERODEV_PROJECT_ID || !process.env.PRIVATE_KEY) {
   throw new Error("BUNDLER_RPC or ZERODEV_PROJECT_ID or PRIVATE_KEY is not set")
 }
 
-const chain = arbitrum
+const chain = mainnet
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
 
@@ -48,7 +48,7 @@ const main = async () => {
   const userOperation = await defiClient.getSwapUserOp({
     tokenIn: 'USDC',
     amountIn: '100',
-    tokenOut: defiTokenAddresses[chain.id]['USDC']['aave-v3'],
+    tokenOut: defiTokenAddresses[chain.id]['DAI']['sDAI'],
     gasToken: 'sponsored',
   })
 
