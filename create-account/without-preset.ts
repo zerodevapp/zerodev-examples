@@ -5,10 +5,13 @@ import {
   createKernelAccountClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { UserOperation } from "permissionless"
+import { toPermissionValidator } from "@zerodev/permissions"
+import { toECDSASigner } from "@zerodev/permissions/signers"
+import { ENTRYPOINT_ADDRESS_V07 } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
-import { polygonMumbai } from "viem/chains"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { sepolia } from "viem/chains"
+import { toGasPolicy } from "@zerodev/permissions/policies"
 
 if (!process.env.BUNDLER_RPC || !process.env.PAYMASTER_RPC || !process.env.PRIVATE_KEY) {
   throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set")
@@ -19,42 +22,56 @@ const publicClient = createPublicClient({
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
+const chain = sepolia
+const entryPoint = ENTRYPOINT_ADDRESS_V07
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
+    entryPoint,
+  })
+
+  const ecdsaSigner = toECDSASigner({
+    signer: privateKeyToAccount(generatePrivateKey()),
   })
 
   const account = await createKernelAccount(publicClient, {
     plugins: {
       sudo: ecdsaValidator,
-    }
+      regular: await toPermissionValidator(publicClient, {
+        entryPoint,
+        signer: ecdsaSigner,
+        policies: [await toGasPolicy({
+          allowed: BigInt(0),
+          enforcePaymaster: true,
+        })],
+      }),
+      entryPoint,
+    },
+    entryPoint,
   })
 
   const kernelClient = createKernelAccountClient({
     account,
-    chain: polygonMumbai,
-    transport: http(process.env.BUNDLER_RPC),
-    sponsorUserOperation: async ({ userOperation }): Promise<UserOperation> => {
-      const paymasterClient = createZeroDevPaymasterClient({
-        chain: polygonMumbai,
-        transport: http(process.env.PAYMASTER_RPC),
-      })
-      return paymasterClient.sponsorUserOperation({
-        userOperation,
-      })
+    entryPoint,
+    chain,
+    bundlerTransport: http(process.env.BUNDLER_RPC),
+    middleware: {
+      sponsorUserOperation: async ({ userOperation }) => {
+        const paymasterClient = createZeroDevPaymasterClient({
+          chain,
+          transport: http(process.env.PAYMASTER_RPC),
+          entryPoint,
+        })
+        return paymasterClient.sponsorUserOperation({
+          userOperation,
+          entryPoint,
+        })
+      },
     },
   })
 
   console.log("My account:", kernelClient.account.address)
-
-  const txnHash = await kernelClient.sendTransaction({
-    to: zeroAddress,
-    value: BigInt(0),
-    data: "0x",
-  })
-
-  console.log("txn hash:", txnHash)
 
   const userOpHash = await kernelClient.sendUserOperation({
     userOperation: {
