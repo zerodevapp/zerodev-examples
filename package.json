@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@zerodev/ecdsa-validator": "^5.2.1-alpha-0",
-    "@zerodev/sdk": "^5.2.1-alpha-0",
-    "@zerodev/permissions": "^5.2.1-alpha.0",
+    "@zerodev/ecdsa-validator": "^5.2.1-alpha-1",
+    "@zerodev/permissions": "^5.2.1-alpha.7",
+    "@zerodev/sdk": "^5.2.1-alpha-2",
+    "permissionless": "^0.1.12",
     "viem": "^2.0.0"
   },
   "devDependencies": {
