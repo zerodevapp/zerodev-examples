@@ -9,7 +9,6 @@ import { toPermissionValidator } from "@zerodev/permissions";
 import { toECDSASigner } from "@zerodev/permissions/signers";
 import { toGasPolicy } from "@zerodev/permissions/policies";
 import { ENTRYPOINT_ADDRESS_V07 } from "permissionless";
-import { createPimlicoBundlerClient } from "permissionless/clients/pimlico";
 import { http, Hex, createPublicClient, zeroAddress, parseEther } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -58,20 +57,12 @@ const main = async () => {
   });
   console.log("My account:", account.address);
 
-  const pimlicoBundlerClient = createPimlicoBundlerClient({
-    chain,
-    transport: http(process.env.BUNDLER_RPC),
-    entryPoint,
-  });
-
   const kernelClient = createKernelAccountClient({
     account,
     entryPoint,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
-      gasPrice: async () =>
-        (await pimlicoBundlerClient.getUserOperationGasPrice()).fast,
       sponsorUserOperation: async ({ userOperation }) => {
         const paymasterClient = createZeroDevPaymasterClient({
           chain,
