@@ -5,12 +5,14 @@ import {
   createKernelAccountClient,
   getERC20PaymasterApproveCall,
   gasTokenAddresses,
+  ZeroDevPaymasterClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { UserOperation, bundlerActions } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V06, UserOperation, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress, encodeFunctionData, parseAbi, parseEther } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { polygonMumbai } from "viem/chains"
+import { sepolia } from "viem/chains"
+import { EntryPoint } from "permissionless/types/entrypoint"
 
 if (!process.env.BUNDLER_RPC || !process.env.PAYMASTER_RPC || !process.env.PRIVATE_KEY) {
   throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set")
@@ -26,31 +28,41 @@ const TEST_ERC20_ABI = parseAbi([
   "function mint(address to, uint256 amount) external",
 ])
 
+const chain = sepolia
+const entryPoint = ENTRYPOINT_ADDRESS_V06
+
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
+    entryPoint,
   })
 
   const account = await createKernelAccount(publicClient, {
     plugins: {
       sudo: ecdsaValidator,
-    }
+    },
+    entryPoint,
   })
 
   const paymasterClient = createZeroDevPaymasterClient({
-    chain: polygonMumbai,
+    chain,
+    entryPoint,
     transport: http(process.env.PAYMASTER_RPC),
   })
 
   const kernelClient = createKernelAccountClient({
     account,
-    chain: polygonMumbai,
-    transport: http(process.env.BUNDLER_RPC),
-    sponsorUserOperation: async ({ userOperation }): Promise<UserOperation> => {
-      return paymasterClient.sponsorUserOperation({
-        userOperation,
-        gasToken: gasTokenAddresses[polygonMumbai.id]['6TEST'],
-      })
+    chain,
+    entryPoint,
+    bundlerTransport: http(process.env.BUNDLER_RPC),
+    middleware: {
+      sponsorUserOperation: async ({ userOperation }) => {
+        return paymasterClient.sponsorUserOperation({
+          userOperation,
+          entryPoint,
+          gasToken: gasTokenAddresses[chain.id]['6TEST'],
+        })
+      },
     },
   })
 
@@ -66,17 +78,17 @@ const main = async () => {
     userOperation: {
       callData: await account.encodeCallData([
         {
-          to: gasTokenAddresses[polygonMumbai.id]["6TEST"],
+          to: gasTokenAddresses[chain.id]["6TEST"],
           data: encodeFunctionData({
             abi: TEST_ERC20_ABI,
             functionName: "mint",
-            args: [account.address, BigInt(100000)]
+            args: [account.address, BigInt(100000000)]
           }),
           value: BigInt(0)
         },
-        await getERC20PaymasterApproveCall(paymasterClient, {
-          gasToken: gasTokenAddresses[polygonMumbai.id]["6TEST"],
-          approveAmount: parseEther('0.1'),
+        await getERC20PaymasterApproveCall(paymasterClient as ZeroDevPaymasterClient<EntryPoint>, {
+          gasToken: gasTokenAddresses[chain.id]["6TEST"],
+          approveAmount: parseEther('1'),
         }),
         {
           to: zeroAddress,
@@ -89,7 +101,7 @@ const main = async () => {
 
   console.log("UserOp hash:", userOpHash)
 
-  const bundlerClient = kernelClient.extend(bundlerActions)
+  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
   await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
   })
