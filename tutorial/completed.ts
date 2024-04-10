@@ -1,8 +1,8 @@
 import "dotenv/config"
-import { createPublicClient, encodeFunctionData, http, parseAbi, publicActions } from "viem"
+import { createPublicClient, encodeFunctionData, http, parseAbi } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
-import { bundlerActions } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk"
 
@@ -25,6 +25,9 @@ const publicClient = createPublicClient({
   transport: http(BUNDLER_RPC),
 })
 
+const chain = polygonMumbai
+const entryPoint = ENTRYPOINT_ADDRESS_V07
+
 const main = async () => {
   // Construct a signer
   const privateKey = generatePrivateKey()
@@ -33,6 +36,7 @@ const main = async () => {
   // Construct a validator
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
+    entryPoint,
   })
 
   // Construct a Kernel account
@@ -40,21 +44,27 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
+    entryPoint,
   })
 
   // Construct a Kernel account client
   const kernelClient = createKernelAccountClient({
     account,
-    chain: polygonMumbai,
-    transport: http(BUNDLER_RPC),
-    sponsorUserOperation: async ({ userOperation }) => {
-      const zerodevPaymaster = createZeroDevPaymasterClient({
-        chain: polygonMumbai,
-        transport: http(PAYMASTER_RPC),
-      })
-      return zerodevPaymaster.sponsorUserOperation({
-        userOperation
-      })
+    chain,
+    entryPoint,
+    bundlerTransport: http(BUNDLER_RPC),
+    middleware: {
+      sponsorUserOperation: async ({ userOperation }) => {
+        const zerodevPaymaster = createZeroDevPaymasterClient({
+          chain,
+          entryPoint,
+          transport: http(PAYMASTER_RPC),
+        })
+        return zerodevPaymaster.sponsorUserOperation({
+          userOperation,
+          entryPoint,
+        })
+      }
     }
   })
 
@@ -78,7 +88,7 @@ const main = async () => {
   console.log("Submitted UserOp:", userOpHash)
 
   // Wait for the UserOp to be included on-chain
-  const bundlerClient = kernelClient.extend(bundlerActions)
+  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
 
   const receipt = await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
