@@ -1,11 +1,12 @@
-import "dotenv/config"
-import { getKernelClient } from "../utils"
-import { zeroAddress } from "viem"
+import "dotenv/config";
+import { getKernelClient } from "../utils";
+import { zeroAddress } from "viem";
+import { ENTRYPOINT_ADDRESS_V07 } from "permissionless";
 
 async function main() {
-  const kernelClient = await getKernelClient()
+  const kernelClient = await getKernelClient(ENTRYPOINT_ADDRESS_V07);
 
-  console.log("Account address:", kernelClient.account.address)
+  console.log("Account address:", kernelClient.account.address);
 
   const userOpHash = await kernelClient.sendUserOperation({
     userOperation: {
@@ -16,9 +17,9 @@ async function main() {
         callType: "delegatecall", // default to "call"
       }),
     },
-  })
+  });
 
-  console.log("UserOp hash:", userOpHash)
+  console.log("UserOp hash:", userOpHash);
 }
 
-main()
+main();
