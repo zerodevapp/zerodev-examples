@@ -12,7 +12,7 @@ import {
 import { UserOperation, bundlerActions } from "permissionless";
 import { http, createPublicClient, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { polygonMumbai } from "viem/chains";
+import { sepolia } from "viem/chains";
 import {
   createWeightedECDSAValidator,
   getUpdateConfigCall,
@@ -62,14 +62,14 @@ const main = async () => {
 
   const kernelPaymaster = createZeroDevPaymasterClient({
     entryPoint,
-    chain: polygonMumbai,
+    chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
 
   const kernelClient = createKernelAccountClient({
     entryPoint,
     account,
-    chain: polygonMumbai,
+    chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
       sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
@@ -93,6 +93,7 @@ const main = async () => {
   console.log("userOp sent");
 
   const currentSigners = await getCurrentSigners(publicClient, {
+    entryPoint,
     multiSigAccountAddress: account.address,
   });
 
@@ -154,7 +155,7 @@ const main = async () => {
   const kernelClient2 = createKernelAccountClient({
     entryPoint,
     account: account2,
-    chain: polygonMumbai,
+    chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
       sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
@@ -193,7 +194,7 @@ const main = async () => {
   const kernelClient3 = createKernelAccountClient({
     entryPoint,
     account: account3,
-    chain: polygonMumbai,
+    chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
       sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
@@ -224,7 +225,7 @@ const main = async () => {
   const kernelClient4 = createKernelAccountClient({
     entryPoint,
     account: account4,
-    chain: polygonMumbai,
+    chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
       sponsorUserOperation: kernelPaymaster.sponsorUserOperation,

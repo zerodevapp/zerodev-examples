@@ -11,7 +11,7 @@ import {
 } from "permissionless";
 import { http, Hex, createPublicClient, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { polygonMumbai } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { createWeightedECDSAValidator } from "@zerodev/weighted-ecdsa-validator";
 
 if (
@@ -54,14 +54,14 @@ const main = async () => {
 
   const kernelPaymaster = createZeroDevPaymasterClient({
     entryPoint,
-    chain: polygonMumbai,
+    chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
 
   const kernelClient = createKernelAccountClient({
     entryPoint,
     account,
-    chain: polygonMumbai,
+    chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
       sponsorUserOperation: kernelPaymaster.sponsorUserOperation,

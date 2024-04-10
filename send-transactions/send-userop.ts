@@ -1,12 +1,13 @@
-import "dotenv/config"
-import { zeroAddress } from "viem"
-import { getKernelClient } from "../utils"
-import { bundlerActions } from "permissionless"
+import "dotenv/config";
+import { zeroAddress } from "viem";
+import { getKernelClient } from "../utils";
+import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless";
 
+const entryPoint = ENTRYPOINT_ADDRESS_V07;
 async function main() {
-  const kernelClient = await getKernelClient()
+  const kernelClient = await getKernelClient(entryPoint);
 
-  console.log("Account address:", kernelClient.account.address)
+  console.log("Account address:", kernelClient.account.address);
 
   const userOpHash = await kernelClient.sendUserOperation({
     userOperation: {
@@ -16,17 +17,17 @@ async function main() {
         data: "0x",
       }),
     },
-  })
+  });
 
-  console.log("UserOp hash:", userOpHash)
-  console.log("Waiting for UserOp to complete...")
+  console.log("UserOp hash:", userOpHash);
+  console.log("Waiting for UserOp to complete...");
 
-  const bundlerClient = kernelClient.extend(bundlerActions)
+  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint));
   await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
-  })
+  });
 
-  console.log("UserOp completed")
+  console.log("UserOp completed");
 }
 
-main()
+main();
