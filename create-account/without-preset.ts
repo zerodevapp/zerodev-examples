@@ -5,11 +5,9 @@ import {
   createKernelAccountClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { toPermissionValidator } from "@zerodev/permissions"
-import { toECDSASigner } from "@zerodev/permissions/signers"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
-import { http, Hex, createPublicClient, zeroAddress, parseEther } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { http, Hex, createPublicClient, zeroAddress } from "viem"
+import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 
 if (
@@ -32,10 +30,6 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
-  })
-
-  const ecdsaSigner = toECDSASigner({
-    signer: privateKeyToAccount(generatePrivateKey()),
   })
 
   const account = await createKernelAccount(publicClient, {
