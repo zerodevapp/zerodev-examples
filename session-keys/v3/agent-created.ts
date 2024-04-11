@@ -3,6 +3,7 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
   createKernelAccountClient,
+  addressToEmptyAccount,
 } from "@zerodev/sdk";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { ENTRYPOINT_ADDRESS_V07 } from "permissionless";
@@ -16,10 +17,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import {
-  toECDSASigner,
-  toEmptyECDSASigner,
-} from "@zerodev/permissions/signers";
+import { toECDSASigner } from "@zerodev/permissions/signers";
 import { ParamCondition, toCallPolicy } from "@zerodev/permissions/policies";
 import {
   ModularSigner,
@@ -64,7 +62,8 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
 
   // Create an "empty account" as the signer -- you only need the public
   // key (address) to do this.
-  const emptySessionKeySigner = toEmptyECDSASigner(sessionKeyAddress);
+  const emptyAccount = addressToEmptyAccount(sessionKeyAddress);
+  const emptySessionKeySigner = await toECDSASigner({ signer: emptyAccount });
 
   const callPolicy = toCallPolicy({
     permissions: [
