@@ -17,6 +17,7 @@ import {
   createWeightedECDSAValidator,
   getUpdateConfigCall,
   getCurrentSigners,
+  WEIGHTED_ECDSA_VALIDATOR_ADDRESS_V07,
 } from "@zerodev/weighted-ecdsa-validator";
 import { WeightedValidatorAbi } from "./abi";
 import { entryPoint } from "./main";
@@ -108,7 +109,7 @@ const main = async () => {
   console.log("second userOp sent");
 
   const storageBefore = await publicClient.readContract({
-    address: "0x8012D9ee59176Cb01a4aa80fCFE6f5E8bA58d4fb",
+    address: WEIGHTED_ECDSA_VALIDATOR_ADDRESS_V07,
     abi: WeightedValidatorAbi,
     functionName: "weightedStorage",
     args: [account.address],
@@ -131,7 +132,7 @@ const main = async () => {
   console.log("userOp sent");
 
   const storageAfter = await publicClient.readContract({
-    address: "0x8012D9ee59176Cb01a4aa80fCFE6f5E8bA58d4fb",
+    address: WEIGHTED_ECDSA_VALIDATOR_ADDRESS_V07,
     abi: WeightedValidatorAbi,
     functionName: "weightedStorage",
     args: [account.address],
