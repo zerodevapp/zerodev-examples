@@ -6,25 +6,13 @@ import {
   getERC20PaymasterApproveCall,
   gasTokenAddresses,
   ZeroDevPaymasterClient,
-} from "@zerodev/sdk";
-import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
-import {
-  ENTRYPOINT_ADDRESS_V06,
-  UserOperation,
-  bundlerActions,
-} from "permissionless";
-import {
-  http,
-  Hex,
-  createPublicClient,
-  zeroAddress,
-  encodeFunctionData,
-  parseAbi,
-  parseEther,
-} from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { sepolia } from "viem/chains";
-import { EntryPoint } from "permissionless/types/entrypoint";
+} from "@zerodev/sdk"
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
+import { ENTRYPOINT_ADDRESS_V06, UserOperation, bundlerActions } from "permissionless"
+import { http, Hex, createPublicClient, zeroAddress, encodeFunctionData, parseAbi, parseEther } from "viem"
+import { privateKeyToAccount } from "viem/accounts"
+import { sepolia } from "viem/chains"
+import { EntryPoint } from "permissionless/types/entrypoint"
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -45,37 +33,39 @@ const TEST_ERC20_ABI = parseAbi([
 ]);
 const entryPoint = ENTRYPOINT_ADDRESS_V06;
 
+const chain = sepolia
+
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-  });
+  })
 
   const account = await createKernelAccount(publicClient, {
     entryPoint,
     plugins: {
       sudo: ecdsaValidator,
     },
-  });
+  })
 
   const paymasterClient = createZeroDevPaymasterClient({
+    chain,
     entryPoint,
-    chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
 
   const kernelClient = createKernelAccountClient({
     entryPoint,
     account,
-    chain: sepolia,
+    chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
-      sponsorUserOperation: async ({ userOperation, entryPoint }) => {
+      sponsorUserOperation: async ({ userOperation }) => {
         return paymasterClient.sponsorUserOperation({
-          entryPoint,
           userOperation,
-          gasToken: gasTokenAddresses[sepolia.id]["6TEST"],
-        });
+          entryPoint,
+          gasToken: gasTokenAddresses[chain.id]['6TEST'],
+        })
       },
     },
   });
@@ -92,21 +82,18 @@ const main = async () => {
     userOperation: {
       callData: await account.encodeCallData([
         {
-          to: gasTokenAddresses[sepolia.id]["6TEST"],
+          to: gasTokenAddresses[chain.id]["6TEST"],
           data: encodeFunctionData({
             abi: TEST_ERC20_ABI,
             functionName: "mint",
-            args: [account.address, BigInt(100000)],
+            args: [account.address, BigInt(100000000)]
           }),
           value: BigInt(0),
         },
-        await getERC20PaymasterApproveCall(
-          paymasterClient as ZeroDevPaymasterClient<EntryPoint>,
-          {
-            gasToken: gasTokenAddresses[sepolia.id]["6TEST"],
-            approveAmount: parseEther("0.1"),
-          }
-        ),
+        await getERC20PaymasterApproveCall(paymasterClient as ZeroDevPaymasterClient<EntryPoint>, {
+          gasToken: gasTokenAddresses[chain.id]["6TEST"],
+          approveAmount: parseEther('1'),
+        }),
         {
           to: zeroAddress,
           value: BigInt(0),
@@ -118,7 +105,7 @@ const main = async () => {
 
   console.log("UserOp hash:", userOpHash);
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint));
+  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
   await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
