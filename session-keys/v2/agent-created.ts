@@ -13,7 +13,7 @@ import {
   deserializeSessionKeyAccount,
   oneAddress,
 } from "@zerodev/session-key";
-import { ENTRYPOINT_ADDRESS_V07, UserOperation } from "permissionless";
+import { ENTRYPOINT_ADDRESS_V06 } from "permissionless";
 import {
   http,
   Hex,
@@ -23,7 +23,7 @@ import {
   Address,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { polygonMumbai } from "viem/chains";
+import { sepolia } from "viem/chains";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -43,7 +43,7 @@ const contractABI = parseAbi([
   "function mint(address _to) public",
   "function balanceOf(address owner) external view returns (uint256 balance)",
 ]);
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
+const entryPoint = ENTRYPOINT_ADDRESS_V06;
 
 const createSessionKey = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
@@ -117,13 +117,13 @@ const useSessionKey = async (
 
   const kernelPaymaster = createZeroDevPaymasterClient({
     entryPoint,
-    chain: polygonMumbai,
+    chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
   const kernelClient = createKernelAccountClient({
     entryPoint,
     account: sessionKeyAccount,
-    chain: polygonMumbai,
+    chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     middleware: {
       sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
