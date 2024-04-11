@@ -1,7 +1,7 @@
 import "dotenv/config"
 import { createPublicClient, encodeFunctionData, http, parseAbi } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { polygonMumbai } from "viem/chains"
+import { sepolia } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk"
@@ -25,7 +25,7 @@ const publicClient = createPublicClient({
   transport: http(BUNDLER_RPC),
 })
 
-const chain = polygonMumbai
+const chain = sepolia
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 
 const main = async () => {
