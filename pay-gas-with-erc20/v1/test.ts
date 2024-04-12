@@ -74,7 +74,7 @@ const main = async () => {
           data: encodeFunctionData({
             abi: TEST_ERC20_ABI,
             functionName: "mint",
-            args: [kernelClient.account.address, BigInt(100000)],
+            args: [kernelClient.account.address, parseEther("0.9")],
           }),
           value: BigInt(0),
         },
@@ -82,7 +82,7 @@ const main = async () => {
           paymasterClient as ZeroDevPaymasterClient<EntryPoint>,
           {
             gasToken: gasTokenAddresses[sepolia.id]["6TEST"],
-            approveAmount: parseEther("1"),
+            approveAmount: parseEther("0.9"),
           }
         ),
         {
