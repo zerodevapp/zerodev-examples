@@ -38,7 +38,7 @@ const oldSigner = privateKeyToAccount(generatePrivateKey());
 const newSigner = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const guardian = privateKeyToAccount(generatePrivateKey());
 
-const recoveryExecutorAddress = "0x2f65dB8039fe5CAEE0a8680D2879deB800F31Ae1";
+const recoveryExecutorAddress = "0xe884C2868CC82c16177eC73a93f7D9E6F3A5DC6E";
 const recoveryExecutorFunction =
   "function doRecovery(address _validator, bytes calldata _data)";
 const recoveryExecutorSelector = toFunctionSelector(recoveryExecutorFunction);
