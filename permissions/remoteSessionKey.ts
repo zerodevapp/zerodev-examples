@@ -16,8 +16,6 @@ import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 
-const SESSION_KEY_STORAGE_URL = "https://keys.zerodev.app/turnkey/v1"
-
 if (
     !process.env.BUNDLER_RPC ||
     !process.env.PAYMASTER_RPC ||
@@ -44,10 +42,9 @@ const main = async () => {
         entryPoint
     })
 
+    // first we create the session key signer in create mode
     const remoteSessionKeySigner = await toRemoteSessionKeySigner({
-        userName: "alice",
         apiKey,
-        sessionKeyStorageUrl: SESSION_KEY_STORAGE_URL,
         mode: SessionKeySignerMode.Create
     })
 
@@ -93,6 +90,57 @@ const main = async () => {
     })
 
     console.log("txHash hash:", txHash)
+
+    // now we get the session key signer in get mode
+    const remoteSessionKeySigner2 = await toRemoteSessionKeySigner({
+        apiKey,
+        walletAddress: remoteSessionKeySigner.account.address, // specify the wallet address to be used
+        mode: SessionKeySignerMode.Get
+    })
+
+    const permissionPlugin2 = await toPermissionValidator(publicClient, {
+        entryPoint,
+        signer: remoteSessionKeySigner2,
+        policies: [toSudoPolicy({})]
+    })
+
+    const account2 = await createKernelAccount(publicClient, {
+        plugins: {
+            sudo: ecdsaValidator,
+            regular: permissionPlugin2
+        },
+        entryPoint
+    })
+
+    console.log("My account2:", account2.address)
+
+    const kernelClient2 = createKernelAccountClient({
+        account: account2,
+        entryPoint,
+        chain,
+        bundlerTransport: http(process.env.BUNDLER_RPC),
+        middleware: {
+            sponsorUserOperation: async ({ userOperation }) => {
+                const paymasterClient = createZeroDevPaymasterClient({
+                    chain,
+                    transport: http(process.env.PAYMASTER_RPC),
+                    entryPoint
+                })
+                return paymasterClient.sponsorUserOperation({
+                    userOperation,
+                    entryPoint
+                })
+            }
+        }
+    })
+
+    const txHash2 = await kernelClient2.sendTransaction({
+        to: zeroAddress,
+        value: BigInt(0),
+        data: "0x"
+    })
+
+    console.log("txHash hash:", txHash2)
 }
 
 main()
