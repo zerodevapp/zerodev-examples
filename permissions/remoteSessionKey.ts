@@ -94,7 +94,7 @@ const main = async () => {
     // now we get the session key signer in get mode
     const remoteSessionKeySigner2 = await toRemoteSessionKeySigner({
         apiKey,
-        walletAddress: remoteSessionKeySigner.account.address, // specify the wallet address to be used
+        keyAddress: remoteSessionKeySigner.account.address, // specify the account address to be used
         mode: SessionKeySignerMode.Get
     })
 
