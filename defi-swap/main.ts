@@ -1,0 +1,87 @@
+import "dotenv/config"
+import {
+  createKernelAccount,
+  createZeroDevPaymasterClient,
+  createKernelAccountClient,
+  KernelAccountClient,
+  KernelSmartAccount,
+} from "@zerodev/sdk"
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
+import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
+import { EntryPoint } from "permissionless/types"
+import { http, Hex, createPublicClient, zeroAddress, type Transport, type Chain } from "viem"
+import { privateKeyToAccount } from "viem/accounts"
+import { arbitrum } from "viem/chains"
+import { createKernelDefiClient, defiTokenAddresses } from "@zerodev/defi";
+
+if (
+  !process.env.PRIVATE_KEY ||
+  !process.env.ZERODEV_PROJECT_ID
+) {
+  throw new Error("PRIVATE_KEY or ZERODEV_PROJECT_ID is not set")
+}
+const projectId = process.env.ZERODEV_PROJECT_ID
+const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`
+const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`
+
+const publicClient = createPublicClient({
+  transport: http(bundlerRpc),
+})
+
+const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
+const chain = arbitrum
+const entryPoint = ENTRYPOINT_ADDRESS_V07
+
+const main = async () => {
+  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+    signer,
+    entryPoint,
+  })
+
+  const account = await createKernelAccount(publicClient, {
+    plugins: {
+      sudo: ecdsaValidator,
+    },
+    entryPoint,
+  })
+  console.log("My account:", account.address)
+
+  const kernelClient = createKernelAccountClient({
+    account,
+    entryPoint,
+    chain,
+    bundlerTransport: http(bundlerRpc),
+    middleware: {
+      sponsorUserOperation: async ({ userOperation }) => {
+        const paymasterClient = createZeroDevPaymasterClient({
+          chain,
+          transport: http(paymasterRpc),
+          entryPoint,
+        })
+        return paymasterClient.sponsorUserOperation({
+          userOperation,
+          entryPoint,
+        })
+      },
+    },
+  }) as KernelAccountClient<EntryPoint, Transport, Chain, KernelSmartAccount<EntryPoint>>;
+  const defiClient =createKernelDefiClient(kernelClient, projectId) 
+
+  const userOpHash = await defiClient.sendSwapUserOp({
+    tokenIn: 'USDC',
+    amountIn: '1',
+    tokenOut: defiTokenAddresses[arbitrum.id]['USDC']['aave-v3'],
+    gasToken: 'sponsored',
+  })
+
+  console.log("userOp hash:", userOpHash)
+
+  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
+  const _receipt = await bundlerClient.waitForUserOperationReceipt({
+    hash: userOpHash,
+  })
+
+  console.log("userOp completed")
+}
+
+main()
