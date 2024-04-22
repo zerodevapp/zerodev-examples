@@ -6,15 +6,13 @@ import {
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { toPermissionValidator } from "@zerodev/permissions"
-import {
-    SessionKeySignerMode,
-    toRemoteSessionKeySigner
-} from "@zerodev/permissions/signers"
+import { toRemoteSigner, RemoteSignerMode } from "@zerodev/remote-signer"
 import { toSudoPolicy } from "@zerodev/permissions/policies"
 import { ENTRYPOINT_ADDRESS_V07 } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
+import { toECDSASigner } from "@zerodev/permissions/signers"
 
 if (
     !process.env.BUNDLER_RPC ||
@@ -42,15 +40,18 @@ const main = async () => {
         entryPoint
     })
 
-    // first we create the session key signer in create mode
-    const remoteSessionKeySigner = await toRemoteSessionKeySigner({
+    // first we create the remote signer in create mode
+    const remoteSigner = await toRemoteSigner({
         apiKey,
-        mode: SessionKeySignerMode.Create
+        mode: RemoteSignerMode.Create
     })
+
+    // now we get the ecdsa signer using the remote signer
+    const ecdsaSigner = toECDSASigner({ signer: remoteSigner })
 
     const permissionPlugin = await toPermissionValidator(publicClient, {
         entryPoint,
-        signer: remoteSessionKeySigner,
+        signer: ecdsaSigner,
         policies: [toSudoPolicy({})]
     })
 
@@ -91,16 +92,18 @@ const main = async () => {
 
     console.log("txHash hash:", txHash)
 
-    // now we get the session key signer in get mode
-    const remoteSessionKeySigner2 = await toRemoteSessionKeySigner({
+    // now we get the remote signer in get mode
+    const remoteSignerWithGet = await toRemoteSigner({
         apiKey,
-        keyAddress: remoteSessionKeySigner.account.address, // specify the account address to be used
-        mode: SessionKeySignerMode.Get
+        keyAddress: remoteSigner.address, // specify the account address to get
+        mode: RemoteSignerMode.Get
     })
+
+    const ecdsaSigner2 = toECDSASigner({ signer: remoteSignerWithGet })
 
     const permissionPlugin2 = await toPermissionValidator(publicClient, {
         entryPoint,
-        signer: remoteSessionKeySigner2,
+        signer: ecdsaSigner2,
         policies: [toSudoPolicy({})]
     })
 
