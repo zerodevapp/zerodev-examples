@@ -1,8 +1,7 @@
+import "dotenv/config"
 import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator'
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient, createFallbackKernelAccountClient } from '@zerodev/sdk'
 import { ENTRYPOINT_ADDRESS_V07 } from 'permissionless'
-import { createPimlicoBundlerClient, createPimlicoPaymasterClient } from 'permissionless/clients/pimlico'
-import { createStackupPaymasterClient } from "permissionless/clients/stackup"
 import { Hex, createPublicClient, http, zeroAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
@@ -33,57 +32,27 @@ async function main() {
         entryPoint
     })
 
-    const zeroDevPaymasterClient = createZeroDevPaymasterClient({
+    const pimlicoPaymasterClient = createZeroDevPaymasterClient({
         chain,
-        transport: http(process.env.PAYMASTER_RPC),
+        transport: http(process.env.PAYMASTER_RPC + '?provider=PIMLICO'),
         entryPoint
     })
 
-    const pimlicoPaymasterClient = createPimlicoPaymasterClient({
+    const stackupPaymasterClient = createZeroDevPaymasterClient({
         chain,
-        transport: http(process.env.PIMLICO_PAYMASTER_RPC_URL),
-        entryPoint
-    })
-
-    const stackupPaymasterClient = createStackupPaymasterClient({
-        chain,
-        transport: http(process.env.STACKUP_PAYMASTER_RPC_URL),
-        entryPoint
-    })
-
-    const zerodevKernelClient = createKernelAccountClient({
-        account,
-        chain,
-        bundlerTransport: http(process.env.BUNDLER_RPC),
-        middleware: {
-            sponsorUserOperation: async ({ userOperation }) => {
-                return zeroDevPaymasterClient.sponsorUserOperation({
-                    userOperation,
-                    entryPoint
-                })
-            }
-        },
-        entryPoint
-    })
-
-    const pimlicoBundlerClient = createPimlicoBundlerClient({
-        transport: http(process.env.PIMLICO_RPC_URL),
+        transport: http(process.env.PAYMASTER_RPC + '?provider=STACKUP'),
         entryPoint
     })
 
     const pimlicoKernelClient = createKernelAccountClient({
         account,
         chain,
-        bundlerTransport: http(process.env.PIMLICO_RPC_URL),
+        bundlerTransport: http(process.env.BUNDLER_RPC + '?provider=PIMLICO'),
         middleware: {
-            gasPrice: async () => {
-                return (
-                    await pimlicoBundlerClient.getUserOperationGasPrice()
-                ).fast
-            },
             sponsorUserOperation: async ({ userOperation }) => {
                 return pimlicoPaymasterClient.sponsorUserOperation({
-                    userOperation
+                    userOperation,
+                    entryPoint,
                 })
             }
         },
@@ -93,15 +62,12 @@ async function main() {
     const stackupKernelClient = createKernelAccountClient({
         account,
         chain,
-        bundlerTransport: http(process.env.STACKUP_RPC_URL),
+        bundlerTransport: http(process.env.BUNDLER_RPC + '?provider=STACKUP'),
         middleware: {
             sponsorUserOperation: async ({ userOperation }) => {
                 return stackupPaymasterClient.sponsorUserOperation({
                     userOperation,
                     entryPoint,
-                    context: {
-                        type: "payg"
-                    }
                 })
             }
         },
@@ -109,7 +75,6 @@ async function main() {
     })
 
     const fallbackKernelClient = createFallbackKernelAccountClient([
-        zerodevKernelClient,
         pimlicoKernelClient,
         stackupKernelClient
     ])
