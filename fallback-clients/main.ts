@@ -1,39 +1,39 @@
-import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator';
-import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient, createFallbackKernelAccountClient} from '@zerodev/sdk';
-import { ENTRYPOINT_ADDRESS_V07 } from 'permissionless';
-import { createPimlicoBundlerClient, createPimlicoPaymasterClient } from 'permissionless/clients/pimlico';
+import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator'
+import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient, createFallbackKernelAccountClient } from '@zerodev/sdk'
+import { ENTRYPOINT_ADDRESS_V07 } from 'permissionless'
+import { createPimlicoBundlerClient, createPimlicoPaymasterClient } from 'permissionless/clients/pimlico'
 import { createStackupPaymasterClient } from "permissionless/clients/stackup"
-import { Hex, createPublicClient, http, zeroAddress } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { sepolia } from 'viem/chains';
+import { Hex, createPublicClient, http, zeroAddress } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
+import { sepolia } from 'viem/chains'
 
-const zeroDevProjectId = process.env.ZERODEV_PROJECT_ID;
-const privateKey = process.env.PRIVATE_KEY;
+const zeroDevProjectId = process.env.ZERODEV_PROJECT_ID
+const privateKey = process.env.PRIVATE_KEY
 if (!zeroDevProjectId || !privateKey) {
-  throw new Error("ZERODEV_PROJECT_ID or PRIVATE_KEY is not set");
+    throw new Error("ZERODEV_PROJECT_ID or PRIVATE_KEY is not set")
 }
 
-const signer = privateKeyToAccount(privateKey as Hex);
-const chain = sepolia;
+const signer = privateKeyToAccount(privateKey as Hex)
+const chain = sepolia
 const publicClient = createPublicClient({
     transport: http(process.env.BUNDLER_RPC),
-  });
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
+})
+const entryPoint = ENTRYPOINT_ADDRESS_V07
 
 async function main() {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
         entryPoint
-      });
-    
-      const account = await createKernelAccount(publicClient, {
+    })
+
+    const account = await createKernelAccount(publicClient, {
         plugins: {
-          sudo: ecdsaValidator,
+            sudo: ecdsaValidator,
         },
         entryPoint
-      });
+    })
 
-      const zeroDevPaymasterClient = createZeroDevPaymasterClient({
+    const zeroDevPaymasterClient = createZeroDevPaymasterClient({
         chain,
         transport: http(process.env.PAYMASTER_RPC),
         entryPoint
@@ -114,7 +114,7 @@ async function main() {
         stackupKernelClient
     ])
 
-    console.log("Account address:", fallbackKernelClient.account.address);
+    console.log("Account address:", fallbackKernelClient.account.address)
 
     const txHash = await fallbackKernelClient.sendTransaction({
         to: zeroAddress,
@@ -122,7 +122,7 @@ async function main() {
         data: "0x"
     })
 
-    console.log("Txn hash:", txHash);
+    console.log("Txn hash:", txHash)
 }
 
 main()
