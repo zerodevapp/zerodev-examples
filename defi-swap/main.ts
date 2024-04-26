@@ -3,13 +3,10 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
   createKernelAccountClient,
-  KernelAccountClient,
-  KernelSmartAccount,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
-import { EntryPoint } from "permissionless/types"
-import { http, Hex, createPublicClient, zeroAddress, type Transport, type Chain } from "viem"
+import { http, Hex, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { arbitrum } from "viem/chains"
 import { createKernelDefiClient, defiTokenAddresses } from "@zerodev/defi";
@@ -64,7 +61,7 @@ const main = async () => {
         })
       },
     },
-  }) as KernelAccountClient<EntryPoint, Transport, Chain, KernelSmartAccount<EntryPoint>>;
+  });
   const defiClient =createKernelDefiClient(kernelClient, projectId) 
 
   const userOpHash = await defiClient.sendSwapUserOp({

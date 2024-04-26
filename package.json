@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@zerodev/defi": "0.0.8-alpha.2",
+    "@zerodev/defi": "^0.0.8",
     "@zerodev/ecdsa-validator": "^5.2.0",
     "@zerodev/permissions": "^5.2.5",
     "@zerodev/presets": "^5.2.0",
