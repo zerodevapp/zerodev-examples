@@ -16,7 +16,10 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { createWeightedECDSAValidator } from "@zerodev/weighted-ecdsa-validator";
+import {
+  createWeightedECDSAValidator,
+  getRecoveryAction,
+} from "@zerodev/weighted-ecdsa-validator";
 import {
   ECDSA_VALIDATOR_ADDRESS_V07,
   signerToEcdsaValidator,
@@ -38,12 +41,9 @@ const oldSigner = privateKeyToAccount(generatePrivateKey());
 const newSigner = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const guardian = privateKeyToAccount(generatePrivateKey());
 
-const recoveryExecutorAddress = "0xe884C2868CC82c16177eC73a93f7D9E6F3A5DC6E";
+const entryPoint = ENTRYPOINT_ADDRESS_V07;
 const recoveryExecutorFunction =
   "function doRecovery(address _validator, bytes calldata _data)";
-const recoveryExecutorSelector = toFunctionSelector(recoveryExecutorFunction);
-
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer: oldSigner,
@@ -64,14 +64,9 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
       regular: guardianValidator,
-      action: {
-        address: recoveryExecutorAddress,
-        selector: recoveryExecutorSelector,
-      },
+      action: getRecoveryAction(entryPoint),
     },
   });
-
-  console.log("recovery selector:", recoveryExecutorSelector);
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain: sepolia,
