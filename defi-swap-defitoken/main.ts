@@ -62,7 +62,7 @@ const main = async () => {
       },
     },
   });
-  const defiClient =createKernelDefiClient(kernelClient, projectId) 
+  const defiClient = createKernelDefiClient(kernelClient, projectId) 
 
   const userOpHash = await defiClient.sendSwapUserOp({
     tokenIn: 'USDC',
