@@ -9,7 +9,7 @@ import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { arbitrum } from "viem/chains"
-import { createKernelDefiClient, defiTokenAddresses } from "@zerodev/defi";
+import { baseTokenAddresses, createKernelDefiClient, defiTokenAddresses } from "@zerodev/defi"
 
 if (
   !process.env.PRIVATE_KEY ||
@@ -65,8 +65,8 @@ const main = async () => {
   const defiClient = createKernelDefiClient(kernelClient, projectId)
 
   const userOpHash = await defiClient.sendSwapUserOp({
-    tokenIn: 'USDC',
-    amountIn: '1',
+    tokenIn: baseTokenAddresses[chain.id].USDC,
+    amountIn: '100',
     tokenOut: defiTokenAddresses[chain.id]['USDC']['aave-v3'],
     gasToken: 'sponsored',
   })
