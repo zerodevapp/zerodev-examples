@@ -66,7 +66,7 @@ const main = async () => {
 
   const userOpHash = await defiClient.sendSwapUserOp({
     tokenIn: baseTokenAddresses[chain.id].USDC,
-    amountIn: '100',
+    amountIn: BigInt("100"),
     tokenOut: defiTokenAddresses[chain.id]['USDC']['aave-v3'],
     gasToken: 'sponsored',
   })

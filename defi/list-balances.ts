@@ -5,11 +5,11 @@ import {
   createKernelAccountClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V07 } from "permissionless"
 import { http, Hex, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { arbitrum } from "viem/chains"
-import { createKernelDefiClient, baseTokenAddresses } from "@zerodev/defi"
+import { createKernelDefiClient } from "@zerodev/defi"
 
 if (
   !process.env.PRIVATE_KEY ||
@@ -64,21 +64,17 @@ const main = async () => {
   });
   const defiClient = createKernelDefiClient(kernelClient, projectId)
 
-  const userOpHash = await defiClient.sendSwapUserOp({
-    tokenIn: baseTokenAddresses[chain.id].USDC,
-    amountIn: BigInt('100'),
-    tokenOut: baseTokenAddresses[chain.id].USDT,
-    gasToken: 'sponsored',
-  })
+  const eoaBalances = await defiClient.listTokenBalances({
+    account: signer.address,
+    chainId: chain.id 
+  }) 
+  console.log("eoaBalances:", eoaBalances)
 
-  console.log("userOp hash:", userOpHash)
-
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
-  await bundlerClient.waitForUserOperationReceipt({
-    hash: userOpHash,
-  })
-
-  console.log("userOp completed")
+  const accountBalances = await defiClient.listTokenBalances({
+    account: account.address,
+    chainId: chain.id 
+  }) 
+  console.log("accountBalances:", accountBalances)
 }
 
 main()
