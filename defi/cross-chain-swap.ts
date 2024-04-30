@@ -8,7 +8,7 @@ import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { arbitrum } from "viem/chains"
+import { arbitrum, polygon } from "viem/chains"
 import { createKernelDefiClient, baseTokenAddresses } from "@zerodev/defi"
 
 if (
@@ -64,13 +64,13 @@ const main = async () => {
   });
   const defiClient = createKernelDefiClient(kernelClient, projectId)
 
-  const userOpHash = await defiClient.sendSwapUserOp({
+  const userOpHash = await defiClient.sendSwapUserOpCrossChain({
     fromToken: baseTokenAddresses[chain.id].USDC,
-    fromAmount: BigInt('100'),
-    toToken: baseTokenAddresses[chain.id].USDT,
+    fromAmount: BigInt('100000'),
+    toChainId: polygon.id,
+    toToken: baseTokenAddresses[polygon.id].USDT,
     gasToken: 'sponsored',
   })
-
   console.log("userOp hash:", userOpHash)
 
   const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))

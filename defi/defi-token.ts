@@ -65,9 +65,9 @@ const main = async () => {
   const defiClient = createKernelDefiClient(kernelClient, projectId)
 
   const userOpHash = await defiClient.sendSwapUserOp({
-    tokenIn: baseTokenAddresses[chain.id].USDC,
-    amountIn: BigInt("100"),
-    tokenOut: defiTokenAddresses[chain.id]['USDC']['aave-v3'],
+    fromToken: baseTokenAddresses[chain.id].USDC,
+    fromAmount: BigInt("100"),
+    toToken: defiTokenAddresses[chain.id]['USDC']['aave-v3'],
     gasToken: 'sponsored',
   })
 
