@@ -39,7 +39,7 @@ const publicClient = createPublicClient({
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 
-const createSessionKey = async (sessionKeyAddress: Address) => {
+const getApproval = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
@@ -72,13 +72,13 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
 }
 
 const useSessionKey = async (
-  serializedSessionKey: string,
+  approval: string,
   sessionKeySigner: ModularSigner
 ) => {
   const sessionKeyAccount = await deserializePermissionAccount(
     publicClient,
     entryPoint,
-    serializedSessionKey,
+    approval,
     sessionKeySigner
   )
 
@@ -120,14 +120,12 @@ const main = async () => {
     signer: sessionKeyAccount,
   })
 
-  // The owner authorizes the public key by signing it and sending
+  // The owner approves the session key by signing its address and sending
   // back the signature
-  const serializedSessionKey = await createSessionKey(
-    sessionKeySigner.account.address
-  )
+  const approval = await getApproval(sessionKeySigner.account.address)
 
   // The agent constructs a full session key
-  await useSessionKey(serializedSessionKey, sessionKeySigner)
+  await useSessionKey(approval, sessionKeySigner)
 }
 
 main()
