@@ -1,14 +1,19 @@
 import dotenv from "dotenv"
 import {
-    signUserOps,
-    toMultiChainValidator
+    ecdsaSignUserOps,
+    toMultiChainECDSAValidator,
+    ecdsaPrepareMultiUserOpRequest
 } from "@zerodev/multi-chain-validator"
 import {
     createKernelAccount,
     createKernelAccountClient,
     createZeroDevPaymasterClient
 } from "@zerodev/sdk"
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
+import {
+    ENTRYPOINT_ADDRESS_V07,
+    bundlerActions,
+    deepHexlify
+} from "permissionless"
 import { EntryPoint } from "permissionless/types/entrypoint"
 import { Hex, createPublicClient, http, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
@@ -55,15 +60,13 @@ const main = async () => {
     })
 
     const signer = privateKeyToAccount(PRIVATE_KEY as Hex)
-    const sepoliaMultiSigECDSAValidatorPlugin = await toMultiChainValidator(
-        sepoliaPublicClient,
-        {
+    const sepoliaMultiSigECDSAValidatorPlugin =
+        await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
             signer
-        }
-    )
+        })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
-        await toMultiChainValidator(optimismSepoliaPublicClient, {
+        await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
             signer
         })
@@ -136,37 +139,53 @@ const main = async () => {
         entryPoint
     })
 
-    const sepoliaUserOp =
-        await sepoliaZerodevKernelClient.prepareMultiUserOpRequest(
-            {
-                userOperation: {
-                    callData: await sepoliaKernelAccount.encodeCallData({
-                        to: zeroAddress,
-                        value: BigInt(0),
-                        data: "0x"
+    const sepoliaUserOp = await ecdsaPrepareMultiUserOpRequest({
+        client: sepoliaZerodevKernelClient,
+        args: {
+            userOperation: {
+                callData: await sepoliaKernelAccount.encodeCallData({
+                    to: zeroAddress,
+                    value: BigInt(0),
+                    data: "0x"
+                })
+            },
+            middleware: {
+                sponsorUserOperation: async ({ userOperation }) => {
+                    return sepoliaZeroDevPaymasterClient.sponsorUserOperation({
+                        userOperation,
+                        entryPoint
                     })
                 }
-            },
-            2
-        )
+            }
+        },
+        numOfUserOps: 2
+    })
 
-    const optimismSepoliaUserOp =
-        await optimismSepoliaZerodevKernelClient.prepareMultiUserOpRequest(
-            {
-                userOperation: {
-                    callData: await optimismSepoliaKernelAccount.encodeCallData(
+    const optimismSepoliaUserOp = await ecdsaPrepareMultiUserOpRequest({
+        client: optimismSepoliaZerodevKernelClient,
+        args: {
+            userOperation: {
+                callData: await optimismSepoliaKernelAccount.encodeCallData({
+                    to: zeroAddress,
+                    value: BigInt(0),
+                    data: "0x"
+                })
+            },
+            middleware: {
+                sponsorUserOperation: async ({ userOperation }) => {
+                    return opSepoliaZeroDevPaymasterClient.sponsorUserOperation(
                         {
-                            to: zeroAddress,
-                            value: BigInt(0),
-                            data: "0x"
+                            userOperation,
+                            entryPoint
                         }
                     )
                 }
-            },
-            2
-        )
+            }
+        },
+        numOfUserOps: 2
+    })
 
-    const signedUserOps = await signUserOps({
+    const signedUserOps = await ecdsaSignUserOps({
         account: sepoliaKernelAccount,
         multiUserOps: [
             { userOperation: sepoliaUserOp, chainId: sepolia.id },
@@ -186,11 +205,10 @@ const main = async () => {
         optimismSepoliaZerodevKernelClient.extend(bundlerActions(entryPoint))
 
     console.log("sending sepoliaUserOp")
-    const sepoliaUserOpHash =
-        await sepoliaZerodevKernelClient.sendSignedUserOperation({
-            userOperation: signedUserOps[0],
-            entryPoint
-        })
+    const sepoliaUserOpHash = await sepoliaZerodevKernelClient.request({
+        method: "eth_sendUserOperation",
+        params: [deepHexlify(signedUserOps[0]), entryPoint]
+    })
 
     console.log("sepoliaUserOpHash", sepoliaUserOpHash)
     await sepoliaBundlerClient.waitForUserOperationReceipt({
@@ -199,9 +217,9 @@ const main = async () => {
 
     console.log("sending optimismSepoliaUserOp")
     const optimismSepoliaUserOpHash =
-        await optimismSepoliaZerodevKernelClient.sendSignedUserOperation({
-            userOperation: signedUserOps[1],
-            entryPoint
+        await optimismSepoliaZerodevKernelClient.request({
+            method: "eth_sendUserOperation",
+            params: [deepHexlify(signedUserOps[1]), entryPoint]
         })
 
     console.log("optimismSepoliaUserOpHash", optimismSepoliaUserOpHash)

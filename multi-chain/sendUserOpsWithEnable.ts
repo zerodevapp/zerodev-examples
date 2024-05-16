@@ -1,15 +1,18 @@
 import dotenv from "dotenv"
 import {
-    signUserOps,
-    signUserOpsWithEnable,
-    toMultiChainValidator
+    ecdsaSignUserOpsWithEnable,
+    toMultiChainECDSAValidator
 } from "@zerodev/multi-chain-validator"
 import {
     createKernelAccount,
     createKernelAccountClient,
     createZeroDevPaymasterClient
 } from "@zerodev/sdk"
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
+import {
+    ENTRYPOINT_ADDRESS_V07,
+    bundlerActions,
+    deepHexlify
+} from "permissionless"
 import { EntryPoint } from "permissionless/types/entrypoint"
 import { Hex, createPublicClient, http, zeroAddress } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
@@ -59,15 +62,13 @@ const main = async () => {
     })
 
     const signer = privateKeyToAccount(PRIVATE_KEY as Hex)
-    const sepoliaMultiSigECDSAValidatorPlugin = await toMultiChainValidator(
-        sepoliaPublicClient,
-        {
+    const sepoliaMultiSigECDSAValidatorPlugin =
+        await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
             signer
-        }
-    )
+        })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
-        await toMultiChainValidator(optimismSepoliaPublicClient, {
+        await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
             signer
         })
@@ -199,8 +200,8 @@ const main = async () => {
         })
 
     // signUserOpsWithEnable will configure the signature as a combination of enable signatures and actual user operation signatures.
-    const signedUserOps = await signUserOpsWithEnable({
-        multiChainUserOpConfigs: [
+    const signedUserOps = await ecdsaSignUserOpsWithEnable({
+        multiChainUserOpConfigsForEnable: [
             {
                 account: sepoliaKernelAccount,
                 userOp: sepoliaUserOp
@@ -220,11 +221,10 @@ const main = async () => {
         optimismSepoliaZerodevKernelClient.extend(bundlerActions(entryPoint))
 
     // You should send the signed user operations to enable the regular validator.
-    const sepoliaUserOpHash =
-        await sepoliaZerodevKernelClient.sendSignedUserOperation({
-            userOperation: signedUserOps[0],
-            entryPoint
-        })
+    const sepoliaUserOpHash = await sepoliaZerodevKernelClient.request({
+        method: "eth_sendUserOperation",
+        params: [deepHexlify(signedUserOps[0]), entryPoint]
+    })
 
     console.log("sepoliaUserOpHash", sepoliaUserOpHash)
     await sepoliaBundlerClient.waitForUserOperationReceipt({
@@ -232,9 +232,9 @@ const main = async () => {
     })
 
     const optimismSepoliaUserOpHash =
-        await optimismSepoliaZerodevKernelClient.sendSignedUserOperation({
-            userOperation: signedUserOps[1],
-            entryPoint
+        await optimismSepoliaZerodevKernelClient.request({
+            method: "eth_sendUserOperation",
+            params: [deepHexlify(signedUserOps[1]), entryPoint]
         })
 
     console.log("optimismSepoliaUserOpHash", optimismSepoliaUserOpHash)

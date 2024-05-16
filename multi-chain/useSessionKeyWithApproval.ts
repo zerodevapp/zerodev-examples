@@ -1,8 +1,5 @@
 import dotenv from "dotenv"
-import {
-    signUserOps,
-    toMultiChainValidator
-} from "@zerodev/multi-chain-validator"
+import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-validator"
 import {
     addressToEmptyAccount,
     createKernelAccount,
@@ -63,15 +60,13 @@ const main = async () => {
     })
 
     const signer = privateKeyToAccount(PRIVATE_KEY as Hex)
-    const sepoliaMultiSigECDSAValidatorPlugin = await toMultiChainValidator(
-        sepoliaPublicClient,
-        {
+    const sepoliaMultiSigECDSAValidatorPlugin =
+        await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
             signer
-        }
-    )
+        })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
-        await toMultiChainValidator(optimismSepoliaPublicClient, {
+        await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
             signer
         })
