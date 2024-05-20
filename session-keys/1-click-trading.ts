@@ -12,6 +12,7 @@ import {
   createPublicClient,
   parseAbi,
   encodeFunctionData,
+  zeroAddress,
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
@@ -22,7 +23,7 @@ import {
   serializePermissionAccount,
   toPermissionValidator,
 } from "@zerodev/permissions"
-import { ParamCondition, toCallPolicy } from "@zerodev/permissions/policies"
+import { ParamCondition, toCallPolicy, toSudoPolicy } from "@zerodev/permissions/policies"
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -38,11 +39,6 @@ const publicClient = createPublicClient({
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const contractAddress = "0x34bE7f35132E97915633BC1fc020364EA5134863"
-const contractABI = parseAbi([
-  "function mint(address _to) public",
-  "function balanceOf(address owner) external view returns (uint256 balance)",
-])
 
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 const createSessionKey = async (
@@ -62,35 +58,14 @@ const createSessionKey = async (
   })
   console.log("Account address:", masterAccount.address)
 
-  const callPolicy = toCallPolicy({
-    permissions: [
-      {
-        target: contractAddress,
-        // Maximum value that can be transferred.  In this case we
-        // set it to zero so that no value transfer is possible.
-        valueLimit: BigInt(0),
-        // Contract abi
-        abi: contractABI,
-        // Function name
-        functionName: "mint",
-        // An array of conditions, each corresponding to an argument for
-        // the function.
-        args: [
-          {
-            // In this case, we are saying that the session key can only mint
-            // NFTs to the account itself
-            condition: ParamCondition.EQUAL,
-            value: masterAccount.address,
-          },
-        ],
-      },
-    ],
-  })
-
   const permissionPlugin = await toPermissionValidator(publicClient, {
     entryPoint,
     signer: sessionKeySigner,
-    policies: [callPolicy],
+    policies: [
+      // In this example, we are just using a sudo policy to allow everything.
+      // In practice, you would want to set more restrictive policies.
+      toSudoPolicy({}),
+    ],
   })
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -130,13 +105,9 @@ const useSessionKey = async (serializedSessionKey: string) => {
   const userOpHash = await kernelClient.sendUserOperation({
     userOperation: {
       callData: await sessionKeyAccount.encodeCallData({
-        to: contractAddress,
+        to: zeroAddress,
         value: BigInt(0),
-        data: encodeFunctionData({
-          abi: contractABI,
-          functionName: "mint",
-          args: [sessionKeyAccount.address],
-        }),
+        data: "0x",
       }),
     },
   })
