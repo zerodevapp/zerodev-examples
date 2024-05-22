@@ -220,10 +220,9 @@ const main = async () => {
     const optimismSepoliaBundlerClient =
         optimismSepoliaZerodevKernelClient.extend(bundlerActions(entryPoint))
 
-    // You should send the signed user operations to enable the regular validator.
-    const sepoliaUserOpHash = await sepoliaZerodevKernelClient.request({
-        method: "eth_sendUserOperation",
-        params: [deepHexlify(signedUserOps[0]), entryPoint]
+    // You should send the signed user operations to enable the regular validator with bundler client.
+    const sepoliaUserOpHash = await sepoliaBundlerClient.sendUserOperation({
+        userOperation: signedUserOps[0]
     })
 
     console.log("sepoliaUserOpHash", sepoliaUserOpHash)
@@ -232,9 +231,8 @@ const main = async () => {
     })
 
     const optimismSepoliaUserOpHash =
-        await optimismSepoliaZerodevKernelClient.request({
-            method: "eth_sendUserOperation",
-            params: [deepHexlify(signedUserOps[1]), entryPoint]
+        await optimismSepoliaBundlerClient.sendUserOperation({
+            userOperation: signedUserOps[1]
         })
 
     console.log("optimismSepoliaUserOpHash", optimismSepoliaUserOpHash)
