@@ -205,9 +205,9 @@ const main = async () => {
         optimismSepoliaZerodevKernelClient.extend(bundlerActions(entryPoint))
 
     console.log("sending sepoliaUserOp")
-    const sepoliaUserOpHash = await sepoliaZerodevKernelClient.request({
-        method: "eth_sendUserOperation",
-        params: [deepHexlify(signedUserOps[0]), entryPoint]
+    // you should use bundler client to send signed user ops
+    const sepoliaUserOpHash = await sepoliaBundlerClient.sendUserOperation({
+        userOperation: signedUserOps[0]
     })
 
     console.log("sepoliaUserOpHash", sepoliaUserOpHash)
@@ -217,9 +217,8 @@ const main = async () => {
 
     console.log("sending optimismSepoliaUserOp")
     const optimismSepoliaUserOpHash =
-        await optimismSepoliaZerodevKernelClient.request({
-            method: "eth_sendUserOperation",
-            params: [deepHexlify(signedUserOps[1]), entryPoint]
+        await optimismSepoliaBundlerClient.sendUserOperation({
+            userOperation: signedUserOps[1]
         })
 
     console.log("optimismSepoliaUserOpHash", optimismSepoliaUserOpHash)
