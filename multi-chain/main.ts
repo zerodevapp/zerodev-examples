@@ -2,18 +2,11 @@ import dotenv from "dotenv"
 import {
     ecdsaSignUserOps,
     toMultiChainECDSAValidator,
-    ecdsaPrepareMultiUserOpRequest
+    createKernelMultiChainClient,
+    ValidatorType
 } from "@zerodev/multi-chain-validator"
-import {
-    createKernelAccount,
-    createKernelAccountClient,
-    createZeroDevPaymasterClient
-} from "@zerodev/sdk"
-import {
-    ENTRYPOINT_ADDRESS_V07,
-    bundlerActions,
-    deepHexlify
-} from "permissionless"
+import { createKernelAccount, createZeroDevPaymasterClient } from "@zerodev/sdk"
+import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { EntryPoint } from "permissionless/types/entrypoint"
 import { Hex, createPublicClient, http, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
@@ -109,7 +102,8 @@ const main = async () => {
         entryPoint
     })
 
-    const sepoliaZerodevKernelClient = createKernelAccountClient({
+    // use createKernelMultiChainClient to support multi-chain operations instead of createKernelAccountClient
+    const sepoliaZerodevKernelClient = createKernelMultiChainClient({
         account: sepoliaKernelAccount,
         chain: sepolia,
         bundlerTransport: http(SEPOLIA_ZERODEV_RPC_URL),
@@ -124,7 +118,7 @@ const main = async () => {
         entryPoint
     })
 
-    const optimismSepoliaZerodevKernelClient = createKernelAccountClient({
+    const optimismSepoliaZerodevKernelClient = createKernelMultiChainClient({
         account: optimismSepoliaKernelAccount,
         chain: optimismSepolia,
         bundlerTransport: http(OPTIMISM_SEPOLIA_ZERODEV_RPC_URL),
@@ -139,51 +133,37 @@ const main = async () => {
         entryPoint
     })
 
-    const sepoliaUserOp = await ecdsaPrepareMultiUserOpRequest({
-        client: sepoliaZerodevKernelClient,
-        args: {
-            userOperation: {
-                callData: await sepoliaKernelAccount.encodeCallData({
-                    to: zeroAddress,
-                    value: BigInt(0),
-                    data: "0x"
-                })
-            },
-            middleware: {
-                sponsorUserOperation: async ({ userOperation }) => {
-                    return sepoliaZeroDevPaymasterClient.sponsorUserOperation({
-                        userOperation,
-                        entryPoint
+    const sepoliaUserOp =
+        await sepoliaZerodevKernelClient.prepareMultiUserOpRequest(
+            {
+                userOperation: {
+                    callData: await sepoliaKernelAccount.encodeCallData({
+                        to: zeroAddress,
+                        value: BigInt(0),
+                        data: "0x"
                     })
                 }
-            }
-        },
-        numOfUserOps: 2
-    })
-
-    const optimismSepoliaUserOp = await ecdsaPrepareMultiUserOpRequest({
-        client: optimismSepoliaZerodevKernelClient,
-        args: {
-            userOperation: {
-                callData: await optimismSepoliaKernelAccount.encodeCallData({
-                    to: zeroAddress,
-                    value: BigInt(0),
-                    data: "0x"
-                })
             },
-            middleware: {
-                sponsorUserOperation: async ({ userOperation }) => {
-                    return opSepoliaZeroDevPaymasterClient.sponsorUserOperation(
+            ValidatorType.ECDSA,
+            2
+        )
+
+    const optimismSepoliaUserOp =
+        await optimismSepoliaZerodevKernelClient.prepareMultiUserOpRequest(
+            {
+                userOperation: {
+                    callData: await optimismSepoliaKernelAccount.encodeCallData(
                         {
-                            userOperation,
-                            entryPoint
+                            to: zeroAddress,
+                            value: BigInt(0),
+                            data: "0x"
                         }
                     )
                 }
-            }
-        },
-        numOfUserOps: 2
-    })
+            },
+            ValidatorType.ECDSA,
+            2
+        )
 
     const signedUserOps = await ecdsaSignUserOps({
         account: sepoliaKernelAccount,

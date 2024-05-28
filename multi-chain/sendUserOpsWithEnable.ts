@@ -1,18 +1,11 @@
 import dotenv from "dotenv"
 import {
+    createKernelMultiChainClient,
     ecdsaSignUserOpsWithEnable,
     toMultiChainECDSAValidator
 } from "@zerodev/multi-chain-validator"
-import {
-    createKernelAccount,
-    createKernelAccountClient,
-    createZeroDevPaymasterClient
-} from "@zerodev/sdk"
-import {
-    ENTRYPOINT_ADDRESS_V07,
-    bundlerActions,
-    deepHexlify
-} from "permissionless"
+import { createKernelAccount, createZeroDevPaymasterClient } from "@zerodev/sdk"
+import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { EntryPoint } from "permissionless/types/entrypoint"
 import { Hex, createPublicClient, http, zeroAddress } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
@@ -143,7 +136,8 @@ const main = async () => {
         entryPoint
     })
 
-    const sepoliaZerodevKernelClient = createKernelAccountClient({
+    // use createKernelMultiChainClient to support multi-chain operations instead of createKernelAccountClient
+    const sepoliaZerodevKernelClient = createKernelMultiChainClient({
         account: sepoliaKernelAccount,
         chain: sepolia,
         bundlerTransport: http(SEPOLIA_ZERODEV_RPC_URL),
@@ -158,7 +152,7 @@ const main = async () => {
         entryPoint
     })
 
-    const optimismSepoliaZerodevKernelClient = createKernelAccountClient({
+    const optimismSepoliaZerodevKernelClient = createKernelMultiChainClient({
         account: optimismSepoliaKernelAccount,
         chain: optimismSepolia,
         bundlerTransport: http(OPTIMISM_SEPOLIA_ZERODEV_RPC_URL),

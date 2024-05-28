@@ -1,12 +1,14 @@
 import dotenv from "dotenv"
-import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-validator"
+import {
+    createKernelMultiChainClient,
+    toMultiChainECDSAValidator
+} from "@zerodev/multi-chain-validator"
 import {
     addressToEmptyAccount,
     createKernelAccount,
-    createKernelAccountClient,
     createZeroDevPaymasterClient
 } from "@zerodev/sdk"
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V07 } from "permissionless"
 import { EntryPoint } from "permissionless/types/entrypoint"
 import { Hex, createPublicClient, http, zeroAddress } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
@@ -190,7 +192,8 @@ const main = async () => {
         entryPoint
     })
 
-    const sepoliaZerodevKernelClient = createKernelAccountClient({
+    // use createKernelMultiChainClient to support multi-chain operations instead of createKernelAccountClient
+    const sepoliaZerodevKernelClient = createKernelMultiChainClient({
         // use the deserialized permission account
         account: deserializeSepoliaKernelAccount,
         chain: sepolia,
@@ -206,7 +209,7 @@ const main = async () => {
         entryPoint
     })
 
-    const optimismSepoliaZerodevKernelClient = createKernelAccountClient({
+    const optimismSepoliaZerodevKernelClient = createKernelMultiChainClient({
         // use the deserialized permission account
         account: deserializeOptimismSepoliaKernelAccount,
         chain: optimismSepolia,
