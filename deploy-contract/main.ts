@@ -4,7 +4,7 @@ import { GreeterAbi, GreeterBytecode } from "./Greeter";
 import { ENTRYPOINT_ADDRESS_V07 } from "permissionless";
 
 async function main() {
-  const kernelClient = await getKernelClient(ENTRYPOINT_ADDRESS_V07);
+  const kernelClient = await getKernelClient(ENTRYPOINT_ADDRESS_V07, "0.3.1");
 
   console.log("Account address:", kernelClient.account.address);
 

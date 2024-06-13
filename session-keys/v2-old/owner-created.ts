@@ -50,6 +50,7 @@ const createSessionKey = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
+    kernelVersion: "0.2.4"
   });
 
   const masterAccount = await createKernelAccount(publicClient, {
@@ -57,6 +58,7 @@ const createSessionKey = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
+    kernelVersion: "0.2.4"
   });
   console.log("Account address:", masterAccount.address);
 
@@ -88,6 +90,7 @@ const createSessionKey = async () => {
         },
       ],
     },
+    kernelVersion: "0.2.4"
   });
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -96,6 +99,7 @@ const createSessionKey = async () => {
       sudo: ecdsaValidator,
       regular: sessionKeyValidator,
     },
+    kernelVersion: "0.2.4"
   });
 
   // Include the private key when you serialize the session key
@@ -106,6 +110,7 @@ const useSessionKey = async (serializedSessionKey: string) => {
   const sessionKeyAccount = await deserializeSessionKeyAccount(
     publicClient,
     entryPoint,
+    "0.2.4",
     serializedSessionKey
   );
 

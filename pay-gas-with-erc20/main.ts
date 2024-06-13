@@ -39,6 +39,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
+    kernelVersion: "0.2.4"
   })
 
   const account = await createKernelAccount(publicClient, {
@@ -46,6 +47,7 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
+    kernelVersion: "0.2.4"
   })
 
   const paymasterClient = createZeroDevPaymasterClient({

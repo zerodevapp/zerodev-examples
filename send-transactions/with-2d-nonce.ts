@@ -6,7 +6,7 @@ import { getCustomNonceKeyFromString } from "@zerodev/sdk"
 
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 async function main() {
-    const kernelClient = await getKernelClient(entryPoint)
+    const kernelClient = await getKernelClient(entryPoint, "0.3.1")
 
     const customNonceKey1 = getCustomNonceKeyFromString(
         "Custom Nonce Key Example 1",

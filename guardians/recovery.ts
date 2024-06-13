@@ -21,7 +21,7 @@ import {
   getRecoveryAction,
 } from "@zerodev/weighted-ecdsa-validator";
 import {
-  ECDSA_VALIDATOR_ADDRESS_V07,
+  getValidatorAddress,
   signerToEcdsaValidator,
 } from "@zerodev/ecdsa-validator";
 
@@ -48,6 +48,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer: oldSigner,
     entryPoint,
+    kernelVersion: "0.3.1"
   });
 
   const guardianValidator = await createWeightedECDSAValidator(publicClient, {
@@ -57,6 +58,7 @@ const main = async () => {
       signers: [{ address: guardian.address, weight: 100 }],
     },
     signers: [guardian],
+    kernelVersion: "0.3.1"
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -66,6 +68,7 @@ const main = async () => {
       regular: guardianValidator,
       action: getRecoveryAction(entryPoint),
     },
+    kernelVersion: "0.3.1"
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
@@ -90,7 +93,7 @@ const main = async () => {
       callData: encodeFunctionData({
         abi: parseAbi([recoveryExecutorFunction]),
         functionName: "doRecovery",
-        args: [ECDSA_VALIDATOR_ADDRESS_V07, newSigner.address],
+        args: [getValidatorAddress(entryPoint, "0.3.1"), newSigner.address],
       }),
     },
   });
@@ -107,6 +110,7 @@ const main = async () => {
   const newEcdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer: newSigner,
     entryPoint,
+    kernelVersion: "0.3.1"
   });
 
   const newAccount = await createKernelAccount(publicClient, {
@@ -115,6 +119,7 @@ const main = async () => {
     plugins: {
       sudo: newEcdsaValidator,
     },
+    kernelVersion: "0.3.1"
   });
 
   const newKernelClient = createKernelAccountClient({

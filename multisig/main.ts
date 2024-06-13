@@ -43,6 +43,7 @@ const main = async () => {
       ],
     },
     signers: [signer2, signer3],
+    kernelVersion: "0.3.1"
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -50,6 +51,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator,
     },
+    kernelVersion: "0.3.1"
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({

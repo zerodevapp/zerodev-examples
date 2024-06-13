@@ -60,6 +60,7 @@ const createSessionKey = async () => {
       ],
     },
     signers: [signer2, signer3],
+    kernelVersion: "0.2.4"
   });
 
   const masterAccount = await createKernelAccount(publicClient, {
@@ -67,6 +68,7 @@ const createSessionKey = async () => {
     plugins: {
       sudo: multisigValidator,
     },
+    kernelVersion: "0.2.4"
   });
   console.log("Account address:", masterAccount.address);
 
@@ -98,6 +100,7 @@ const createSessionKey = async () => {
         },
       ],
     },
+    kernelVersion: "0.2.4"
   });
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -106,6 +109,7 @@ const createSessionKey = async () => {
       sudo: multisigValidator,
       regular: sessionKeyValidator,
     },
+    kernelVersion: "0.2.4"
   });
 
   // Include the private key when you serialize the session key
@@ -116,6 +120,7 @@ const useSessionKey = async (serializedSessionKey: string) => {
   const sessionKeyAccount = await deserializeSessionKeyAccount(
     publicClient,
     entryPoint,
+    "0.2.4",
     serializedSessionKey
   );
 

@@ -22,14 +22,16 @@ const entryPoint = ENTRYPOINT_ADDRESS_V07
 async function main() {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
-    entryPoint
+    entryPoint,
+    kernelVersion: "0.3.1"
   })
 
   const account = await createKernelAccount(publicClient, {
     plugins: {
       sudo: ecdsaValidator,
     },
-    entryPoint
+    entryPoint,
+    kernelVersion: "0.3.1"
   })
 
   const pimlicoKernelClient = createKernelAccountClient({

@@ -58,12 +58,14 @@ const main = async () => {
     const sepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: "0.3.1"
         })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: "0.3.1"
         })
 
     const sepoliaEcdsaSigner = privateKeyToAccount(generatePrivateKey())
@@ -83,7 +85,8 @@ const main = async () => {
         {
             entryPoint,
             signer: sepoliaEcdsaModularSigner,
-            policies: [sudoPolicy]
+            policies: [sudoPolicy],
+            kernelVersion: "0.3.1"
         }
     )
 
@@ -92,7 +95,8 @@ const main = async () => {
         {
             entryPoint,
             signer: optimismSepoliaEcdsaModularSigner,
-            policies: [sudoPolicy]
+            policies: [sudoPolicy],
+            kernelVersion: "0.3.1"
         }
     )
 
@@ -103,7 +107,8 @@ const main = async () => {
             plugins: {
                 sudo: sepoliaMultiSigECDSAValidatorPlugin,
                 regular: sepoliaPermissionPlugin
-            }
+            },
+            kernelVersion: "0.3.1"
         }
     )
 
@@ -114,7 +119,8 @@ const main = async () => {
             plugins: {
                 sudo: optimismSepoliaMultiSigECDSAValidatorPlugin,
                 regular: optimismSepoliaPermissionPlugin
-            }
+            },
+            kernelVersion: "0.3.1"
         }
     )
 

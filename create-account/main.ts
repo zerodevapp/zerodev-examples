@@ -30,6 +30,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
+    kernelVersion: "0.3.1"
   })
 
   const account = await createKernelAccount(publicClient, {
@@ -37,6 +38,7 @@ const main = async () => {
       sudo: ecdsaValidator,
     },
     entryPoint,
+    kernelVersion: "0.3.1"
   })
   console.log("My account:", account.address)
 

@@ -23,7 +23,8 @@ const chain = sepolia
 const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
-        entryPoint
+        entryPoint,
+        kernelVersion: "0.2.4"
     })
 
     const account = await createKernelAccount(publicClient, {
@@ -31,6 +32,7 @@ const main = async () => {
             sudo: ecdsaValidator
         },
         entryPoint,
+        kernelVersion: "0.2.4"
     })
 
     const paymasterClient = createZeroDevPaymasterClient({

@@ -50,7 +50,8 @@ const entryPoint = ENTRYPOINT_ADDRESS_V07
 const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
-        entryPoint
+        entryPoint,
+        kernelVersion: "0.3.1"
     })
 
     const randomAccount = privateKeyToAccount(generatePrivateKey())
@@ -64,6 +65,7 @@ const main = async () => {
             sudo: ecdsaValidator,
             regular: await toPermissionValidator(publicClient, {
                 entryPoint,
+                kernelVersion: "0.3.1",
                 signer: ecdsaSigner,
                 policies: [
                     toGasPolicy({
@@ -92,7 +94,8 @@ const main = async () => {
                 ]
             })
         },
-        entryPoint
+        entryPoint,
+        kernelVersion: "0.3.1"
     })
     console.log("My account:", account.address)
 

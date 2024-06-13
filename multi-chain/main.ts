@@ -56,12 +56,14 @@ const main = async () => {
     const sepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: "0.3.1"
         })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: "0.3.1"
         })
 
     const sepoliaKernelAccount = await createKernelAccount(
@@ -70,7 +72,8 @@ const main = async () => {
             entryPoint,
             plugins: {
                 sudo: sepoliaMultiSigECDSAValidatorPlugin
-            }
+            },
+            kernelVersion: "0.3.1"
         }
     )
 
@@ -80,7 +83,8 @@ const main = async () => {
             entryPoint,
             plugins: {
                 sudo: optimismSepoliaMultiSigECDSAValidatorPlugin
-            }
+            },
+            kernelVersion: "0.3.1"
         }
     )
 

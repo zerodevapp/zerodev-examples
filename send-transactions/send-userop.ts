@@ -5,7 +5,7 @@ import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless";
 
 const entryPoint = ENTRYPOINT_ADDRESS_V07;
 async function main() {
-  const kernelClient = await getKernelClient(entryPoint);
+  const kernelClient = await getKernelClient(entryPoint, "0.3.1");
 
   console.log("Account address:", kernelClient.account.address);
 

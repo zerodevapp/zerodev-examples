@@ -37,6 +37,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
+    kernelVersion: "0.3.1"
   })
 
   // Construct a Kernel account
@@ -45,6 +46,7 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
+    kernelVersion: "0.3.1"
   })
 
   // Construct a Kernel account client

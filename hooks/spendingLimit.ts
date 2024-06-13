@@ -36,7 +36,8 @@ const Test_ERC20Address = "0x3870419Ba2BBf0127060bCB37f69A1b1C090992B"
 const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
-        entryPoint
+        entryPoint,
+        kernelVersion: "0.3.1"
     })
 
     const ecdsaSigner = toECDSASigner({
@@ -48,7 +49,8 @@ const main = async () => {
     const permissoinPlugin = await toPermissionValidator(publicClient, {
         signer: ecdsaSigner,
         policies: [sudoPolicy],
-        entryPoint
+        entryPoint,
+        kernelVersion: "0.3.1"
     })
 
     const spendingLimitHook = await toSpendingLimitHook({
@@ -61,7 +63,8 @@ const main = async () => {
             sudo: ecdsaValidator,
             regular: permissoinPlugin,
             hook: spendingLimitHook
-        }
+        },
+        kernelVersion: "0.3.1"
     })
 
     const kernelClient = await createKernelAccountClient({

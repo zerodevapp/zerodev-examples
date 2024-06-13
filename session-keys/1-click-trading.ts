@@ -48,6 +48,7 @@ const createSessionKey = async (
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
+    kernelVersion: "0.3.1"
   })
 
   const masterAccount = await createKernelAccount(publicClient, {
@@ -55,6 +56,7 @@ const createSessionKey = async (
     plugins: {
       sudo: ecdsaValidator,
     },
+    kernelVersion: "0.3.1"
   })
   console.log("Account address:", masterAccount.address)
 
@@ -66,6 +68,7 @@ const createSessionKey = async (
       // In practice, you would want to set more restrictive policies.
       toSudoPolicy({}),
     ],
+    kernelVersion: "0.3.1"
   })
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -74,6 +77,7 @@ const createSessionKey = async (
       sudo: ecdsaValidator,
       regular: permissionPlugin,
     },
+    kernelVersion: "0.3.1"
   })
 
   // Include the private key when you serialize the session key
@@ -84,6 +88,7 @@ const useSessionKey = async (serializedSessionKey: string) => {
   const sessionKeyAccount = await deserializePermissionAccount(
     publicClient,
     entryPoint,
+    "0.3.1",
     serializedSessionKey
   )
 
