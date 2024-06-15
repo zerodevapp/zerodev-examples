@@ -13,6 +13,7 @@ import { http, Hex, createPublicClient, zeroAddress, encodeFunctionData, parseAb
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { EntryPoint } from "permissionless/types/entrypoint"
+import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -39,7 +40,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-    kernelVersion: "0.2.4"
+    kernelVersion: KERNEL_V2_4
   })
 
   const account = await createKernelAccount(publicClient, {
@@ -47,7 +48,7 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
-    kernelVersion: "0.2.4"
+    kernelVersion: KERNEL_V2_4
   })
 
   const paymasterClient = createZeroDevPaymasterClient({

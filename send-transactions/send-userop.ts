@@ -2,10 +2,11 @@ import "dotenv/config";
 import { zeroAddress } from "viem";
 import { getKernelClient } from "../utils";
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless";
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 const entryPoint = ENTRYPOINT_ADDRESS_V07;
 async function main() {
-  const kernelClient = await getKernelClient(entryPoint, "0.3.1");
+  const kernelClient = await getKernelClient(entryPoint, KERNEL_V3_1);
 
   console.log("Account address:", kernelClient.account.address);
 

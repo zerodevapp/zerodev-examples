@@ -13,6 +13,7 @@ import { http, Hex, createPublicClient, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { createWeightedECDSAValidator } from "@zerodev/weighted-ecdsa-validator";
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -43,7 +44,7 @@ const main = async () => {
       ],
     },
     signers: [signer2, signer3],
-    kernelVersion: "0.3.1"
+    kernelVersion: KERNEL_V3_1
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -51,7 +52,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator,
     },
-    kernelVersion: "0.3.1"
+    kernelVersion: KERNEL_V3_1
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({

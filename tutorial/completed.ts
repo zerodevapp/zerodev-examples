@@ -5,6 +5,7 @@ import { sepolia } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (!process.env.ZERODEV_PROJECT_ID) {
   throw new Error("ZERODEV_PROJECT_ID is not set");
@@ -37,7 +38,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
-    kernelVersion: "0.3.1"
+    kernelVersion: KERNEL_V3_1
   })
 
   // Construct a Kernel account
@@ -46,7 +47,7 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
-    kernelVersion: "0.3.1"
+    kernelVersion: KERNEL_V3_1
   })
 
   // Construct a Kernel account client

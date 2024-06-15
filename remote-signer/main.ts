@@ -13,6 +13,7 @@ import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { toECDSASigner } from "@zerodev/permissions/signers"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
     !process.env.BUNDLER_RPC ||
@@ -38,7 +39,7 @@ const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
         entryPoint,
-        kernelVersion: "0.3.1"
+        kernelVersion: KERNEL_V3_1
     })
 
     // first we create the remote signer in create mode
@@ -54,7 +55,7 @@ const main = async () => {
         entryPoint,
         signer: ecdsaSigner,
         policies: [toSudoPolicy({})],
-        kernelVersion: "0.3.1"
+        kernelVersion: KERNEL_V3_1
     })
 
     const account = await createKernelAccount(publicClient, {
@@ -63,7 +64,7 @@ const main = async () => {
             regular: permissionPlugin
         },
         entryPoint,
-        kernelVersion: "0.3.1"
+        kernelVersion: KERNEL_V3_1
     })
     console.log("My account:", account.address)
 
@@ -108,7 +109,7 @@ const main = async () => {
         entryPoint,
         signer: ecdsaSigner2,
         policies: [toSudoPolicy({})],
-        kernelVersion: "0.3.1"
+        kernelVersion: KERNEL_V3_1
     })
 
     const account2 = await createKernelAccount(publicClient, {
@@ -117,7 +118,7 @@ const main = async () => {
             regular: permissionPlugin2
         },
         entryPoint,
-        kernelVersion: "0.3.1"
+        kernelVersion: KERNEL_V3_1
     })
 
     console.log("My account2:", account2.address)

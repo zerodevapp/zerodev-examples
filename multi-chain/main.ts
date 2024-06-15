@@ -11,6 +11,7 @@ import { EntryPoint } from "permissionless/types/entrypoint"
 import { Hex, createPublicClient, http, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { optimismSepolia, sepolia } from "viem/chains"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 dotenv.config()
 
@@ -57,13 +58,13 @@ const main = async () => {
         await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
             signer,
-            kernelVersion: "0.3.1"
+            kernelVersion: KERNEL_V3_1
         })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
             signer,
-            kernelVersion: "0.3.1"
+            kernelVersion: KERNEL_V3_1
         })
 
     const sepoliaKernelAccount = await createKernelAccount(
@@ -73,7 +74,7 @@ const main = async () => {
             plugins: {
                 sudo: sepoliaMultiSigECDSAValidatorPlugin
             },
-            kernelVersion: "0.3.1"
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -84,7 +85,7 @@ const main = async () => {
             plugins: {
                 sudo: optimismSepoliaMultiSigECDSAValidatorPlugin
             },
-            kernelVersion: "0.3.1"
+            kernelVersion: KERNEL_V3_1
         }
     )
 

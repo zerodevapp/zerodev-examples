@@ -10,6 +10,7 @@ import { ENTRYPOINT_ADDRESS_V06 } from "permissionless"
 import { createPublicClient, http, zeroAddress } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
+import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
@@ -24,7 +25,7 @@ const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
         entryPoint,
-        kernelVersion: "0.2.4"
+        kernelVersion: KERNEL_V2_4
     })
 
     const account = await createKernelAccount(publicClient, {
@@ -32,7 +33,7 @@ const main = async () => {
             sudo: ecdsaValidator
         },
         entryPoint,
-        kernelVersion: "0.2.4"
+        kernelVersion: KERNEL_V2_4
     })
 
     const paymasterClient = createZeroDevPaymasterClient({
