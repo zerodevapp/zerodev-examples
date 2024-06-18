@@ -20,6 +20,7 @@ import {
     serializeMultiChainPermissionAccounts,
     toPermissionValidator
 } from "@zerodev/permissions"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 dotenv.config()
 
@@ -65,12 +66,14 @@ const main = async () => {
     const sepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: KERNEL_V3_1
         })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: KERNEL_V3_1
         })
 
     const sepoliaSessionKeyAccount = privateKeyToAccount(generatePrivateKey())
@@ -103,7 +106,8 @@ const main = async () => {
         {
             entryPoint,
             signer: sepoliaEmptySessionKeySigner,
-            policies: [sudoPolicy]
+            policies: [sudoPolicy],
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -112,7 +116,8 @@ const main = async () => {
         {
             entryPoint,
             signer: optimismSepoliaEmptySessionKeySigner,
-            policies: [sudoPolicy]
+            policies: [sudoPolicy],
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -123,7 +128,8 @@ const main = async () => {
             plugins: {
                 sudo: sepoliaMultiSigECDSAValidatorPlugin,
                 regular: sepoliaPermissionPlugin
-            }
+            },
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -134,7 +140,8 @@ const main = async () => {
             plugins: {
                 sudo: optimismSepoliaMultiSigECDSAValidatorPlugin,
                 regular: optimismSepoliaPermissionPlugin
-            }
+            },
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -168,6 +175,7 @@ const main = async () => {
     const deserializeSepoliaKernelAccount = await deserializePermissionAccount(
         sepoliaPublicClient,
         entryPoint,
+        KERNEL_V3_1,
         sepoliaApproval,
         sepoliaSessionKeySigner
     )
@@ -176,6 +184,7 @@ const main = async () => {
         await deserializePermissionAccount(
             optimismSepoliaPublicClient,
             entryPoint,
+            KERNEL_V3_1,
             optimismSepoliaApproval,
             optimismSepoliaSessionKeySigner
         )

@@ -24,6 +24,7 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 const contractAddress = "0x34bE7f35132E97915633BC1fc020364EA5134863"
 const contractABI = parseAbi([
@@ -50,7 +51,8 @@ const entryPoint = ENTRYPOINT_ADDRESS_V07
 const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
-        entryPoint
+        entryPoint,
+        kernelVersion: KERNEL_V3_1
     })
 
     const randomAccount = privateKeyToAccount(generatePrivateKey())
@@ -64,6 +66,7 @@ const main = async () => {
             sudo: ecdsaValidator,
             regular: await toPermissionValidator(publicClient, {
                 entryPoint,
+                kernelVersion: KERNEL_V3_1,
                 signer: ecdsaSigner,
                 policies: [
                     toGasPolicy({
@@ -92,7 +95,8 @@ const main = async () => {
                 ]
             })
         },
-        entryPoint
+        entryPoint,
+        kernelVersion: KERNEL_V3_1
     })
     console.log("My account:", account.address)
 

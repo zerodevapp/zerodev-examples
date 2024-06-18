@@ -3,10 +3,11 @@ import { zeroAddress } from "viem"
 import { getKernelClient } from "../utils"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { getCustomNonceKeyFromString } from "@zerodev/sdk"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 async function main() {
-    const kernelClient = await getKernelClient(entryPoint)
+    const kernelClient = await getKernelClient(entryPoint, KERNEL_V3_1)
 
     const customNonceKey1 = getCustomNonceKeyFromString(
         "Custom Nonce Key Example 1",

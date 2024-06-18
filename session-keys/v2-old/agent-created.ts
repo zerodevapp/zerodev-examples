@@ -24,6 +24,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
+import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -49,6 +50,7 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
+    kernelVersion: KERNEL_V2_4
   });
 
   const masterAccount = await createKernelAccount(publicClient, {
@@ -56,6 +58,7 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
     plugins: {
       sudo: ecdsaValidator,
     },
+    kernelVersion: KERNEL_V2_4
   });
   console.log("Account address:", masterAccount.address);
 
@@ -91,6 +94,7 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
         },
       ],
     },
+    kernelVersion: KERNEL_V2_4
   });
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -99,6 +103,7 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
       sudo: ecdsaValidator,
       regular: sessionKeyValidator,
     },
+    kernelVersion: KERNEL_V2_4
   });
 
   return await serializeSessionKeyAccount(sessionKeyAccount);
@@ -111,6 +116,7 @@ const useSessionKey = async (
   const sessionKeyAccount = await deserializeSessionKeyAccount(
     publicClient,
     entryPoint,
+    KERNEL_V2_4,
     serializedSessionKey,
     sessionKeySigner
   );

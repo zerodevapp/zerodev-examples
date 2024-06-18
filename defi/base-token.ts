@@ -10,6 +10,7 @@ import { http, Hex, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { arbitrum } from "viem/chains"
 import { createKernelDefiClient, baseTokenAddresses } from "@zerodev/defi"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.PRIVATE_KEY ||
@@ -33,6 +34,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
+    kernelVersion: KERNEL_V3_1
   })
 
   const account = await createKernelAccount(publicClient, {
@@ -40,6 +42,7 @@ const main = async () => {
       sudo: ecdsaValidator,
     },
     entryPoint,
+    kernelVersion: KERNEL_V3_1
   })
   console.log("My account:", account.address)
 

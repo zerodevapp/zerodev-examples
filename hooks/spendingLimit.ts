@@ -14,6 +14,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { toSpendingLimitHook } from "@zerodev/hooks"
 import { TEST_ERC20Abi } from "./Test_ERC20abi"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
     !process.env.BUNDLER_RPC ||
@@ -36,7 +37,8 @@ const Test_ERC20Address = "0x3870419Ba2BBf0127060bCB37f69A1b1C090992B"
 const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
-        entryPoint
+        entryPoint,
+        kernelVersion: KERNEL_V3_1
     })
 
     const ecdsaSigner = toECDSASigner({
@@ -48,7 +50,8 @@ const main = async () => {
     const permissoinPlugin = await toPermissionValidator(publicClient, {
         signer: ecdsaSigner,
         policies: [sudoPolicy],
-        entryPoint
+        entryPoint,
+        kernelVersion: KERNEL_V3_1
     })
 
     const spendingLimitHook = await toSpendingLimitHook({
@@ -61,7 +64,8 @@ const main = async () => {
             sudo: ecdsaValidator,
             regular: permissoinPlugin,
             hook: spendingLimitHook
-        }
+        },
+        kernelVersion: KERNEL_V3_1
     })
 
     const kernelClient = await createKernelAccountClient({

@@ -17,10 +17,11 @@ import {
   createWeightedECDSAValidator,
   getUpdateConfigCall,
   getCurrentSigners,
-  WEIGHTED_ECDSA_VALIDATOR_ADDRESS_V07,
+  getValidatorAddress
 } from "@zerodev/weighted-ecdsa-validator";
 import { WeightedValidatorAbi } from "./abi";
 import { entryPoint } from "./main";
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -52,6 +53,7 @@ const main = async () => {
       ],
     },
     signers: [signer1, signer2],
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -59,6 +61,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator,
     },
+    kernelVersion: KERNEL_V3_1
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({
@@ -96,6 +99,7 @@ const main = async () => {
   const currentSigners = await getCurrentSigners(publicClient, {
     entryPoint,
     multiSigAccountAddress: account.address,
+    kernelVersion: KERNEL_V3_1
   });
 
   console.log("current signers:", currentSigners);
@@ -109,7 +113,7 @@ const main = async () => {
   console.log("second userOp sent");
 
   const storageBefore = await publicClient.readContract({
-    address: WEIGHTED_ECDSA_VALIDATOR_ADDRESS_V07,
+    address: getValidatorAddress(entryPoint, KERNEL_V3_1),
     abi: WeightedValidatorAbi,
     functionName: "weightedStorage",
     args: [account.address],
@@ -119,7 +123,7 @@ const main = async () => {
 
   console.log("updating config to add signer 3...");
   await kernelClient.sendTransaction(
-    getUpdateConfigCall(entryPoint, {
+    getUpdateConfigCall(entryPoint, KERNEL_V3_1, {
       threshold: 100,
       signers: [
         { address: signer1.address, weight: 50 },
@@ -132,7 +136,7 @@ const main = async () => {
   console.log("userOp sent");
 
   const storageAfter = await publicClient.readContract({
-    address: WEIGHTED_ECDSA_VALIDATOR_ADDRESS_V07,
+    address: getValidatorAddress(entryPoint, KERNEL_V3_1),
     abi: WeightedValidatorAbi,
     functionName: "weightedStorage",
     args: [account.address],
@@ -143,6 +147,7 @@ const main = async () => {
   const multisigValidator2 = await createWeightedECDSAValidator(publicClient, {
     entryPoint,
     signers: [signer1, signer2, signer3],
+    kernelVersion: KERNEL_V3_1
   });
 
   const account2 = await createKernelAccount(publicClient, {
@@ -151,6 +156,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator2,
     },
+    kernelVersion: KERNEL_V3_1
   });
 
   const kernelClient2 = createKernelAccountClient({
@@ -182,6 +188,7 @@ const main = async () => {
   const multisigValidator3 = await createWeightedECDSAValidator(publicClient, {
     entryPoint,
     signers: [signer2, signer3],
+    kernelVersion: KERNEL_V3_1
   });
 
   const account3 = await createKernelAccount(publicClient, {
@@ -190,6 +197,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator3,
     },
+    kernelVersion: KERNEL_V3_1
   });
 
   const kernelClient3 = createKernelAccountClient({
@@ -213,6 +221,7 @@ const main = async () => {
   const multisigValidator4 = await createWeightedECDSAValidator(publicClient, {
     entryPoint,
     signers: [signer1, signer3],
+    kernelVersion: KERNEL_V3_1
   });
 
   const account4 = await createKernelAccount(publicClient, {
@@ -221,6 +230,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator4,
     },
+    kernelVersion: KERNEL_V3_1
   });
 
   const kernelClient4 = createKernelAccountClient({

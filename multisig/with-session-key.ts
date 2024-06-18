@@ -21,6 +21,7 @@ import {
 import { http, createPublicClient, parseAbi, encodeFunctionData } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
+import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -60,6 +61,7 @@ const createSessionKey = async () => {
       ],
     },
     signers: [signer2, signer3],
+    kernelVersion: KERNEL_V2_4
   });
 
   const masterAccount = await createKernelAccount(publicClient, {
@@ -67,6 +69,7 @@ const createSessionKey = async () => {
     plugins: {
       sudo: multisigValidator,
     },
+    kernelVersion: KERNEL_V2_4
   });
   console.log("Account address:", masterAccount.address);
 
@@ -98,6 +101,7 @@ const createSessionKey = async () => {
         },
       ],
     },
+    kernelVersion: KERNEL_V2_4
   });
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -106,6 +110,7 @@ const createSessionKey = async () => {
       sudo: multisigValidator,
       regular: sessionKeyValidator,
     },
+    kernelVersion: KERNEL_V2_4
   });
 
   // Include the private key when you serialize the session key
@@ -116,6 +121,7 @@ const useSessionKey = async (serializedSessionKey: string) => {
   const sessionKeyAccount = await deserializeSessionKeyAccount(
     publicClient,
     entryPoint,
+    KERNEL_V2_4,
     serializedSessionKey
   );
 

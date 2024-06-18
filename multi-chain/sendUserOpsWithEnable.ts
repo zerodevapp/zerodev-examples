@@ -13,6 +13,7 @@ import { optimismSepolia, sepolia } from "viem/chains"
 import { toECDSASigner } from "@zerodev/permissions/signers"
 import { toSudoPolicy } from "@zerodev/permissions/policies"
 import { toPermissionValidator } from "@zerodev/permissions"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 dotenv.config()
 
@@ -58,12 +59,14 @@ const main = async () => {
     const sepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(sepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: KERNEL_V3_1
         })
     const optimismSepoliaMultiSigECDSAValidatorPlugin =
         await toMultiChainECDSAValidator(optimismSepoliaPublicClient, {
             entryPoint,
-            signer
+            signer,
+            kernelVersion: KERNEL_V3_1
         })
 
     const sepoliaEcdsaSigner = privateKeyToAccount(generatePrivateKey())
@@ -83,7 +86,8 @@ const main = async () => {
         {
             entryPoint,
             signer: sepoliaEcdsaModularSigner,
-            policies: [sudoPolicy]
+            policies: [sudoPolicy],
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -92,7 +96,8 @@ const main = async () => {
         {
             entryPoint,
             signer: optimismSepoliaEcdsaModularSigner,
-            policies: [sudoPolicy]
+            policies: [sudoPolicy],
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -103,7 +108,8 @@ const main = async () => {
             plugins: {
                 sudo: sepoliaMultiSigECDSAValidatorPlugin,
                 regular: sepoliaPermissionPlugin
-            }
+            },
+            kernelVersion: KERNEL_V3_1
         }
     )
 
@@ -114,7 +120,8 @@ const main = async () => {
             plugins: {
                 sudo: optimismSepoliaMultiSigECDSAValidatorPlugin,
                 regular: optimismSepoliaPermissionPlugin
-            }
+            },
+            kernelVersion: KERNEL_V3_1
         }
     )
 

@@ -18,6 +18,7 @@ import {
   serializePermissionAccount,
   toPermissionValidator,
 } from "@zerodev/permissions";
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -38,6 +39,7 @@ const getApproval = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
+    kernelVersion: KERNEL_V3_1
   });
 
   // Create an "empty account" as the signer -- you only need the public
@@ -53,6 +55,7 @@ const getApproval = async (sessionKeyAddress: Address) => {
       // In practice, you would want to set more restrictive policies.
       toSudoPolicy({}),
     ],
+    kernelVersion: KERNEL_V3_1
   });
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -61,6 +64,7 @@ const getApproval = async (sessionKeyAddress: Address) => {
       sudo: ecdsaValidator,
       regular: permissionPlugin,
     },
+    kernelVersion: KERNEL_V3_1
   });
 
   return await serializePermissionAccount(sessionKeyAccount);
@@ -73,6 +77,7 @@ const useSessionKey = async (
   const sessionKeyAccount = await deserializePermissionAccount(
     publicClient,
     entryPoint,
+    KERNEL_V3_1,
     approval,
     sessionKeySigner
   );
@@ -115,12 +120,14 @@ const revokeSessionKey = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
+    kernelVersion: KERNEL_V3_1
   });
   const sudoAccount = await createKernelAccount(publicClient, {
     plugins: {
       sudo: ecdsaValidator,
     },
     entryPoint,
+    kernelVersion: KERNEL_V3_1
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({
@@ -149,6 +156,7 @@ const revokeSessionKey = async (sessionKeyAddress: Address) => {
       // In practice, you would want to set more restrictive policies.
       toSudoPolicy({}),
     ],
+    kernelVersion: KERNEL_V3_1
   });
 
   const unInstallTxHash = await sudoKernelClient.uninstallPlugin({

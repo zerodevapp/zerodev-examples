@@ -24,6 +24,7 @@ import {
   toPermissionValidator,
 } from "@zerodev/permissions"
 import { ParamCondition, toCallPolicy, toSudoPolicy } from "@zerodev/permissions/policies"
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -48,6 +49,7 @@ const createSessionKey = async (
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
+    kernelVersion: KERNEL_V3_1
   })
 
   const masterAccount = await createKernelAccount(publicClient, {
@@ -55,6 +57,7 @@ const createSessionKey = async (
     plugins: {
       sudo: ecdsaValidator,
     },
+    kernelVersion: KERNEL_V3_1
   })
   console.log("Account address:", masterAccount.address)
 
@@ -66,6 +69,7 @@ const createSessionKey = async (
       // In practice, you would want to set more restrictive policies.
       toSudoPolicy({}),
     ],
+    kernelVersion: KERNEL_V3_1
   })
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -74,6 +78,7 @@ const createSessionKey = async (
       sudo: ecdsaValidator,
       regular: permissionPlugin,
     },
+    kernelVersion: KERNEL_V3_1
   })
 
   // Include the private key when you serialize the session key
@@ -84,6 +89,7 @@ const useSessionKey = async (serializedSessionKey: string) => {
   const sessionKeyAccount = await deserializePermissionAccount(
     publicClient,
     entryPoint,
+    KERNEL_V3_1,
     serializedSessionKey
   )
 

@@ -8,9 +8,10 @@ import {
   SponsorUserOperationParameters,
   createKernelAccount,
   createKernelAccountClient,
-  createKernelV1Account,
+  createKernelAccountV1,
   createZeroDevPaymasterClient,
 } from "@zerodev/sdk";
+import { GetKernelVersion } from "@zerodev/sdk/types";
 import { ENTRYPOINT_ADDRESS_V06, ENTRYPOINT_ADDRESS_V07 } from "permissionless";
 import { SmartAccount } from "permissionless/accounts";
 import { Middleware } from "permissionless/actions/smartAccount";
@@ -35,11 +36,13 @@ const publicClient = createPublicClient({
 });
 
 export const getKernelClient = async <entryPoint extends EntryPoint>(
-  entryPointAddress: entryPoint
+  entryPointAddress: entryPoint,
+  kernelVersion: GetKernelVersion<entryPoint>
 ) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint: entryPointAddress,
+    kernelVersion
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -47,6 +50,7 @@ export const getKernelClient = async <entryPoint extends EntryPoint>(
       sudo: ecdsaValidator,
     },
     entryPoint: entryPointAddress,
+    kernelVersion
   });
   console.log("My account:", account.address);
 
@@ -91,11 +95,10 @@ export const getKernelV1Account = async (): Promise<
   });
   const signer = privateKeyToAccount(privateKey);
 
-  return createKernelV1Account(publicClient, {
+  return createKernelAccountV1(publicClient, {
     signer,
     index: BigInt(0),
-    // [TODO]: fix type, change to entryPoint from entrypoint
-    entrypoint: ENTRYPOINT_ADDRESS_V06,
+    entryPoint: ENTRYPOINT_ADDRESS_V06,
   }) as unknown as KernelSmartAccount<
     ENTRYPOINT_ADDRESS_V06_TYPE,
     Transport,
