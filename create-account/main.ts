@@ -5,11 +5,11 @@ import {
   createKernelAccountClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V06, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { bsc } from "viem/chains"
+import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -24,14 +24,14 @@ const publicClient = createPublicClient({
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const chain = sepolia
-const entryPoint = ENTRYPOINT_ADDRESS_V07
+const chain = bsc
+const entryPoint = ENTRYPOINT_ADDRESS_V06
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V2_4
   })
 
   const account = await createKernelAccount(publicClient, {
@@ -39,7 +39,7 @@ const main = async () => {
       sudo: ecdsaValidator,
     },
     entryPoint,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V2_4
   })
   console.log("My account:", account.address)
 
