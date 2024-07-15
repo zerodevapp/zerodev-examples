@@ -8,6 +8,7 @@ import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { toPermissionValidator } from "@zerodev/permissions"
 import { toECDSASigner } from "@zerodev/permissions/signers"
 import {
+    CallPolicyVersion,
     ParamCondition,
     toCallPolicy,
     toGasPolicy,
@@ -78,6 +79,7 @@ const main = async () => {
                         interval: 10
                     }),
                     toCallPolicy({
+                        policyVersion: CallPolicyVersion.V0_0_2,
                         permissions: [
                             {
                                 abi: contractABI,
