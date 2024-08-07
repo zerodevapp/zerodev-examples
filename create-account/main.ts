@@ -8,7 +8,7 @@ import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
+import { polygon } from "viem/chains"
 import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
@@ -24,7 +24,7 @@ const publicClient = createPublicClient({
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const chain = sepolia
+const chain = polygon
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 
 const main = async () => {
