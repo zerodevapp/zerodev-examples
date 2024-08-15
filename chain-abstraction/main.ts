@@ -11,6 +11,7 @@ import { arbitrum, base } from "viem/chains"
 import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 import { createKernelCABClient, supportedTokens } from "@zerodev/cab"
 import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-validator"
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -38,7 +39,7 @@ const waitForUserInput = async () => {
 }
 
 const main = async () => {
-  const ecdsaValidator = await toMultiChainECDSAValidator(publicClient, {
+  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
     kernelVersion,
@@ -52,9 +53,6 @@ const main = async () => {
     kernelVersion,
   })
   console.log("My account:", account.address)
-
-  console.log(`Deposit some USDC to ${account.address} on arbitrum, then press enter to continue...`)
-  await waitForUserInput()
 
   const kernelClient = createKernelAccountClient({
     account,
