@@ -3,15 +3,17 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
   createKernelAccountClient,
+  KernelSmartAccount,
 } from "@zerodev/sdk"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
-import { http, Hex, createPublicClient, encodeFunctionData, erc20Abi } from "viem"
+import { http, Hex, createPublicClient, encodeFunctionData, erc20Abi, Chain } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { arbitrum, base } from "viem/chains"
 import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 import { createKernelCABClient, supportedTokens } from "@zerodev/cab"
 import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-validator"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
+import { ENTRYPOINT_ADDRESS_V07_TYPE } from "permissionless/types/entrypoint"
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -38,22 +40,7 @@ const waitForUserInput = async () => {
   })
 }
 
-const main = async () => {
-  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
-    signer,
-    entryPoint,
-    kernelVersion,
-  })
-
-  const account = await createKernelAccount(publicClient, {
-    plugins: {
-      sudo: ecdsaValidator,
-    },
-    entryPoint,
-    kernelVersion,
-  })
-  console.log("My account:", account.address)
-
+const createCABClientForChain = async (account: KernelSmartAccount<ENTRYPOINT_ADDRESS_V07_TYPE>, chain: Chain) => {
   const kernelClient = createKernelAccountClient({
     account,
     entryPoint,
@@ -78,9 +65,37 @@ const main = async () => {
     transport: http(process.env.CAB_PAYMASTER_URL)
   })
 
-  console.log("Enabling CAB...")
+  return cabClient
+}
+
+const main = async () => {
+  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+    signer,
+    entryPoint,
+    kernelVersion,
+  })
+
+  const account = await createKernelAccount(publicClient, {
+    plugins: {
+      sudo: ecdsaValidator,
+    },
+    entryPoint,
+    kernelVersion,
+  })
+  console.log("My account:", account.address)
+
+  const cabClient = await createCABClientForChain(account, arbitrum)
+
+  console.log("Enabling CAB for arbitrum...")
   await cabClient.enableCAB({
-    tokens: [{ name: "USDC", networks: [arbitrum.id, base.id] }]
+    tokens: [{ name: "USDC", networks: [arbitrum.id] }]
+  })
+
+  const cabClient2 = await createCABClientForChain(account, base)
+
+  console.log("Enabling CAB for base...")
+  await cabClient2.enableCAB({
+    tokens: [{ name: "USDC", networks: [base.id] }]
   })
 
   while (true) {
@@ -134,7 +149,7 @@ const main = async () => {
 
   console.log("userOp hash:", userOpHash)
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
+  const bundlerClient = cabClient.extend(bundlerActions(entryPoint))
   await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
   })
