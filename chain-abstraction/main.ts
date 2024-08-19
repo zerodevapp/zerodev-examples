@@ -83,7 +83,7 @@ const main = async () => {
     await waitForUserInput()
     const cabBalance = await arbCabClient.getCabBalance({
       address: arbCabClient.account.address,
-      token: supportedTokens.USDC[base.id].token,
+      token: 'USDC',
     })
     console.log("CAB balance:", cabBalance)
     if (cabBalance > 0) {
@@ -108,8 +108,7 @@ const main = async () => {
 
   const { userOperation, repayTokensInfo, sponsorTokensInfo } =
     await baseCabClient.prepareUserOperationRequestCAB({
-      account: baseCabClient.account,
-      transactions: calls,
+      calls: calls,
       repayTokens: repayTokens
     })
 
@@ -119,9 +118,7 @@ const main = async () => {
 
   const userOpHash = await baseCabClient.sendUserOperationCAB({
     userOperation,
-    repayTokens,
   })
-
 
   console.log("userOp hash:", userOpHash)
 
