@@ -99,7 +99,7 @@ const main = async () => {
   })
 
   while (true) {
-    console.log('Press enter to check CAB balance.  Will proceed when CAB balance is greater than 0.')
+    console.log('Deposit USDC on either Arbitrum or Base.  Press Enter to check CAB.  Will proceed when CAB is greater than 0.')
     await waitForUserInput()
     const cabBalance = await cabClient.getCabBalance({
       address: account.address,
