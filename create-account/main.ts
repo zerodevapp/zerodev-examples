@@ -8,7 +8,7 @@ import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { polygon } from "viem/chains"
+import { sepolia } from "viem/chains"
 import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
@@ -24,14 +24,15 @@ const publicClient = createPublicClient({
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const chain = polygon
+const chain = sepolia
 const entryPoint = ENTRYPOINT_ADDRESS_V07
+const kernelVersion = KERNEL_V3_1
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion,
   })
 
   const account = await createKernelAccount(publicClient, {
@@ -39,7 +40,7 @@ const main = async () => {
       sudo: ecdsaValidator,
     },
     entryPoint,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion,
   })
   console.log("My account:", account.address)
 
