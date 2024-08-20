@@ -4,7 +4,7 @@
   "license": "MIT",
   "dependencies": {
     "@zerodev/cab": "0.0.15",
-    "@zerodev/defi": "^0.0.13",
+    "@zerodev/defi": "0.0.14",
     "@zerodev/ecdsa-validator": "^5.3.1",
     "@zerodev/hooks": "^5.2.1",
     "@zerodev/multi-chain-validator": "^5.3.0",

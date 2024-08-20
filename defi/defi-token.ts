@@ -67,21 +67,26 @@ const main = async () => {
   });
   const defiClient = createKernelDefiClient(kernelClient, projectId)
 
-  const userOpHash = await defiClient.sendSwapUserOp({
-    fromToken: baseTokenAddresses[chain.id].USDC,
-    fromAmount: BigInt("100"),
-    toToken: defiTokenAddresses[chain.id]['USDC']['aave-v3'],
-    gasToken: 'sponsored',
-  })
-
-  console.log("userOp hash:", userOpHash)
-
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
-  await bundlerClient.waitForUserOperationReceipt({
-    hash: userOpHash,
-  })
-
-  console.log("userOp completed")
+  try {
+    const userOpHash = await defiClient.sendSwapUserOp({
+      fromToken: baseTokenAddresses[chain.id].USDC,
+      fromAmount: BigInt("100"),
+      toToken: defiTokenAddresses[chain.id]['USDC']['aave-v3'],
+      gasToken: 'sponsored',
+      slippage: 300, // in basis
+    })
+  
+    console.log("userOp hash:", userOpHash)
+  
+    const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
+    await bundlerClient.waitForUserOperationReceipt({
+      hash: userOpHash,
+    })
+  
+    console.log("userOp completed")
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 main()
