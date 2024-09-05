@@ -67,33 +67,38 @@ const main = async () => {
   });
   const defiClient = createKernelDefiClient(kernelClient, projectId)
 
-  const swapData = await defiClient.getSwapData({
-    fromAddress: account.address,
-    fromToken: baseTokenAddresses[chain.id].USDC,
-    fromAmount: BigInt("100"),
-    toAddress: account.address,
-    toToken: baseTokenAddresses[chain.id].USDT,
-    chainId: chain.id,
-  })
-  const userOpHash = await defiClient.sendUserOperation({
-    userOperation: {
-      callData: await defiClient.account.encodeCallData({
-        to: swapData.targetAddress,
-        data: swapData.callData,
-        value: swapData.value,
-        callType: "delegatecall"
-      })
-    },
-  })
-
-  console.log("userOp hash:", userOpHash)
-
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
-  await bundlerClient.waitForUserOperationReceipt({
-    hash: userOpHash,
-  })
-
-  console.log("userOp completed")
+  try {
+    const swapData = await defiClient.getSwapData({
+      fromAddress: account.address,
+      fromToken: baseTokenAddresses[chain.id].USDC,
+      fromAmount: BigInt("1000"),
+      toAddress: account.address,
+      toToken: baseTokenAddresses[chain.id].USDT,
+      chainId: chain.id,
+      slippage: 300, // in basis
+    })
+    const userOpHash = await defiClient.sendUserOperation({
+      userOperation: {
+        callData: await defiClient.account.encodeCallData({
+          to: swapData.targetAddress,
+          data: swapData.callData,
+          value: swapData.value,
+          callType: "delegatecall"
+        })
+      },
+    })
+  
+    console.log("userOp hash:", userOpHash)
+  
+    const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
+    await bundlerClient.waitForUserOperationReceipt({
+      hash: userOpHash,
+    })
+  
+    console.log("userOp completed")
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 main()
