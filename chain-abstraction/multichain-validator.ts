@@ -57,7 +57,8 @@ const createCABClientForChain = async (chain: Chain) => {
   })
 
   const cabClient = createKernelCABClient(kernelClient, {
-    transport: http(process.env.CAB_PAYMASTER_URL)
+    transport: http(process.env.CAB_PAYMASTER_URL),
+    entryPoint
   })
 
   return cabClient

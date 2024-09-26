@@ -12,14 +12,15 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
 
+const chain = sepolia
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
+  chain
 });
 
 const signer = privateKeyToAccount(generatePrivateKey());
 const entryPoint = ENTRYPOINT_ADDRESS_V06;
 
-const chain = sepolia
 
 const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
@@ -70,7 +71,8 @@ const main = async () => {
 
     const result = await paymasterClient.estimateGasInERC20({
         userOperation,
-        gasTokenAddress: gasTokenAddresses[chain.id]["6TEST"]
+        gasTokenAddress: gasTokenAddresses[chain.id]["6TEST"],
+        entryPoint
     })
 
     console.log(`fee: ${result.amount} test tokens`)

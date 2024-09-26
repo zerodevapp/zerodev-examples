@@ -83,6 +83,7 @@ const main = async () => {
           {
             gasToken: gasTokenAddresses[sepolia.id]["6TEST"],
             approveAmount: parseEther("0.9"),
+            entryPoint
           }
         ),
         {

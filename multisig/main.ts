@@ -25,6 +25,7 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
+  chain: sepolia
 });
 
 const signer1 = privateKeyToAccount(generatePrivateKey());

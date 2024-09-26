@@ -22,9 +22,10 @@ if (
 ) {
   throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set");
 }
-
+const chain = sepolia
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
+  chain
 });
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
@@ -34,7 +35,7 @@ const TEST_ERC20_ABI = parseAbi([
 ]);
 const entryPoint = ENTRYPOINT_ADDRESS_V06;
 
-const chain = sepolia
+
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
@@ -96,6 +97,7 @@ const main = async () => {
         await getERC20PaymasterApproveCall(paymasterClient as ZeroDevPaymasterClient<EntryPoint>, {
           gasToken: gasTokenAddresses[chain.id]["6TEST"],
           approveAmount: parseEther('1'),
+          entryPoint
         }),
         {
           to: zeroAddress,

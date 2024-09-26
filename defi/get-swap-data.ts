@@ -21,13 +21,14 @@ if (
 const projectId = process.env.ZERODEV_PROJECT_ID
 const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`
 const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`
-
+const chain = arbitrum
 const publicClient = createPublicClient({
   transport: http(bundlerRpc),
+  chain
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const chain = arbitrum
+
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 
 const main = async () => {
