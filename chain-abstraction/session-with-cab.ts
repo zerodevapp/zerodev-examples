@@ -112,7 +112,9 @@ const enableCAB = async () => {
 
   while (true) {
     console.log(
-      "Deposit USDC on either optimismSepolia or sepolia.  Press Enter to check CAB.  Will proceed when CAB is greater than 0."
+      `Deposit 6TEST (address: ${
+        supportedTokens["6TEST"][sepolia.id].token
+      }) on either optimismSepolia or sepolia.  Press Enter to check CAB.  Will proceed when CAB is greater than 0.`
     );
     await waitForUserInput();
     const cabBalance = await cabClient.getCabBalance({
