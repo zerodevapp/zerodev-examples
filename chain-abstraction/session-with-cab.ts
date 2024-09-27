@@ -19,7 +19,12 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { optimismSepolia, sepolia } from "viem/chains";
 import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
-import { createKernelCABClient, supportedTokens } from "@zerodev/cab";
+import {
+  cabPaymasterAddress,
+  createKernelCABClient,
+  invoiceManagerAddress,
+  supportedTokens,
+} from "@zerodev/cab";
 import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-validator";
 import {
   Caveat,
@@ -27,9 +32,15 @@ import {
   Delegation,
   ROOT_AUTHORITY,
 } from "@zerodev/session-account";
-import { toCABPaymasterEnforcer } from "@zerodev/session-account/enforcers";
+import {
+  CallType,
+  ParamCondition,
+  toAllowedParamsEnforcer,
+  toCABPaymasterEnforcer,
+} from "@zerodev/session-account/enforcers";
 import { dmActionsEip7710 } from "@zerodev/session-account/clients";
 import { ENTRYPOINT_ADDRESS_V07_TYPE } from "permissionless/types";
+import { erc20SpenderAbi } from "./erc20SpenderAbi";
 
 if (
   !process.env.SEPOLIA_BUNDLER_RPC ||
@@ -45,6 +56,8 @@ if (
   );
 }
 
+export const erc20SpenderAddress: Address =
+  "0x7f9ae753D86c04a7C13004eaf2A97Fa95F61128F";
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const entryPoint = ENTRYPOINT_ADDRESS_V07;
 const kernelVersion = KERNEL_V3_1;
@@ -153,6 +166,95 @@ const installDMAndDelegate = async (
   console.log(`installDMAndDelegateTxHash: ${installDMAndDelegateTxHash}`);
 };
 
+const getCabPermissions = async () => {
+  const kernelClient = await createKernelClient(sepolia);
+  const cabClient = createKernelCABClient(kernelClient, {
+    transport: http(process.env.CAB_PAYMASTER_URL),
+    entryPoint,
+  });
+  const { tokens: cabTokens } = await cabClient.getCabAllTokens({});
+  return [
+    ...cabTokens.map((tkn) => ({
+      abi: erc20Abi,
+      functionName: "transferFrom",
+      target: tkn.address,
+      callType: CallType.BATCH_CALL,
+      args: [
+        {
+          condition: ParamCondition.EQUAL,
+          value: cabPaymasterAddress,
+        },
+        {
+          condition: ParamCondition.EQUAL,
+          value: kernelClient.account.address,
+        },
+        null,
+      ],
+    })),
+    {
+      abi: [
+        {
+          type: "function",
+          name: "createInvoice",
+          inputs: [
+            {
+              name: "invoice",
+              type: "tuple",
+              internalType: "struct IInvoiceManager.InvoiceWithRepayTokens",
+              components: [
+                {
+                  name: "account",
+                  type: "address",
+                  internalType: "address",
+                },
+                { name: "nonce", type: "uint256", internalType: "uint256" },
+                {
+                  name: "paymaster",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "sponsorChainId",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "repayTokenInfos",
+                  type: "tuple[]",
+                  internalType: "struct IInvoiceManager.RepayTokenInfo[]",
+                  components: [
+                    {
+                      name: "vault",
+                      type: "address",
+                      internalType: "contract IVault",
+                    },
+                    {
+                      name: "amount",
+                      type: "uint256",
+                      internalType: "uint256",
+                    },
+                    {
+                      name: "chainId",
+                      type: "uint256",
+                      internalType: "uint256",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          outputs: [],
+          stateMutability: "payable",
+        },
+      ],
+      functionName: "createInvoice",
+      target: invoiceManagerAddress,
+      callType: CallType.BATCH_CALL,
+      args: [null],
+    },
+  ];
+};
+
 const main = async () => {
   await enableCAB();
   const kernelClient = await createKernelClient(sepolia);
@@ -164,7 +266,50 @@ const main = async () => {
   const cabCaveat = await toCABPaymasterEnforcer({
     accountAddress: kernelClient.account.address,
   });
-  const caveats = [cabCaveat];
+  const allowedParamsCaveat = toAllowedParamsEnforcer({
+    permissions: [
+      // @ts-expect-error
+      ...(await getCabPermissions()),
+      {
+        // @ts-expect-error
+        abi: erc20Abi,
+        target: supportedTokens["6TEST"][sepolia.id].token,
+        // @ts-expect-error
+        functionName: "approve",
+        callType: CallType.BATCH_CALL,
+        args: [
+          // @ts-expect-error
+          {
+            condition: ParamCondition.EQUAL,
+            value: erc20SpenderAddress,
+          },
+          // @ts-expect-error
+          null,
+        ],
+      },
+      {
+        // @ts-expect-error: Types can't infer two abis at the same time, ideally can put all the required functions in a single abi to avoid error
+        abi: erc20SpenderAbi,
+        target: erc20SpenderAddress,
+        // @ts-expect-error
+        functionName: "spendAllowance",
+        callType: CallType.BATCH_CALL,
+        args: [
+          // @ts-expect-error
+          {
+            condition: ParamCondition.EQUAL,
+            value: supportedTokens["6TEST"][sepolia.id].token,
+          },
+          // @ts-expect-error
+          {
+            condition: ParamCondition.LESS_THAN_OR_EQUAL,
+            value: BigInt(1000),
+          },
+        ],
+      },
+    ],
+  });
+  const caveats = [cabCaveat, allowedParamsCaveat];
 
   const delegations: Delegation[] = [
     {
@@ -219,14 +364,23 @@ const main = async () => {
 
   const repayTokens = ["6TEST"];
 
-  // transfer 0.001 USDC to itself
+  // transfer 0.001 6TEST to itself
   const calls = [
     {
       to: supportedTokens["6TEST"][sepolia.id].token,
       data: encodeFunctionData({
         abi: erc20Abi,
-        functionName: "transfer",
-        args: [kernelClient.account.address, BigInt(1000)],
+        functionName: "approve",
+        args: [erc20SpenderAddress, BigInt(1000)],
+      }),
+      value: BigInt(0),
+    },
+    {
+      to: erc20SpenderAddress,
+      data: encodeFunctionData({
+        abi: erc20SpenderAbi,
+        functionName: "spendAllowance",
+        args: [supportedTokens["6TEST"][sepolia.id].token, BigInt(1000)],
       }),
       value: BigInt(0),
     },
