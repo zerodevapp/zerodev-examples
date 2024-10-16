@@ -11,7 +11,7 @@
     "@zerodev/permissions": "^5.4.6",
     "@zerodev/presets": "^5.3.3",
     "@zerodev/remote-signer": "^5.2.4",
-    "@zerodev/sdk": "^5.3.14",
+    "@zerodev/sdk": "^5.3.22",
     "@zerodev/session-account": "^5.3.0",
     "@zerodev/session-key": "^5.4.4",
     "@zerodev/weighted-ecdsa-validator": "^5.3.3",
