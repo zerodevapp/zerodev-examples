@@ -90,7 +90,7 @@ const main = async () => {
 
   console.log("userOp completed")
 
-  // after this, now you can use multiChainECDSAValidatorPlugin as sudoValidator. For usage of multi-chain validators, refer to the example in `multi-chain` directory. For multi-chain webauthn validator, refer to this [repo](https://github.com/zerodevapp/multi-chain-passkey-example)
+  // after this, now you can use multiChainECDSAValidatorPlugin as sudoValidator. For usage of the multi-chain ecdsa validator, refer to the example in `multi-chain` directory. For the multi-chain webauthn validator, refer to this [repo](https://github.com/zerodevapp/multi-chain-passkey-example)
 }
 
 main()
