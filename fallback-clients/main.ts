@@ -17,6 +17,7 @@ const signer = privateKeyToAccount(privateKey as Hex)
 const chain = sepolia
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
+  chain
 })
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 

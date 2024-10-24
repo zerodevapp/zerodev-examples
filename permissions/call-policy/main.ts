@@ -34,13 +34,14 @@ if (
 ) {
     throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set")
 }
-
+const chain = sepolia
 const publicClient = createPublicClient({
-    transport: http(process.env.BUNDLER_RPC)
+    transport: http(process.env.BUNDLER_RPC),
+    chain
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const chain = sepolia
+
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 
 const main = async () => {

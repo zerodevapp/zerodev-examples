@@ -49,10 +49,12 @@ const entryPoint = ENTRYPOINT_ADDRESS_V07 as EntryPoint
 
 const main = async () => {
     const sepoliaPublicClient = createPublicClient({
-        transport: http(SEPOLIA_RPC_URL)
+        transport: http(SEPOLIA_RPC_URL),
+        chain: sepolia
     })
     const optimismSepoliaPublicClient = createPublicClient({
-        transport: http(OPTIMISM_SEPOLIA_RPC_URL)
+        transport: http(OPTIMISM_SEPOLIA_RPC_URL),
+        chain: optimismSepolia
     })
 
     const signer = privateKeyToAccount(PRIVATE_KEY as Hex)

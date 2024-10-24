@@ -10,6 +10,7 @@ import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { toMultiChainECDSAValidator } from '@zerodev/multi-chain-validator'
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -65,24 +66,31 @@ const main = async () => {
     },
   })
 
-  const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: await account.encodeCallData({
-        to: zeroAddress,
-        value: BigInt(0),
-        data: "0x",
-      }),
-    },
+  // initialize multiChainECDSAValidatorPlugin
+  const multiChainECDSAValidatorPlugin =
+  await toMultiChainECDSAValidator(publicClient, {
+      entryPoint,
+      kernelVersion,
+      signer
   })
 
-  console.log("userOp hash:", userOpHash)
+  /**
+   * @dev In this example, we initialize kernel with ecdsaValidator as sudoValidator and then change it to multiChainECDSAValidatorPlugin. But in most cases, these are separate actions since you would want to change sudoValidator to a different one after deploying the kernel.
+   */
+  const changeSudoValidatorUserOpHash = await kernelClient.changeSudoValidator({
+    sudoValidator: multiChainECDSAValidatorPlugin
+  })
+
+  console.log("changeSudoValidatorUserOpHash hash:", changeSudoValidatorUserOpHash)
 
   const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
   const _receipt = await bundlerClient.waitForUserOperationReceipt({
-    hash: userOpHash,
+    hash: changeSudoValidatorUserOpHash,
   })
 
   console.log("userOp completed")
+
+  // after this, now you can use multiChainECDSAValidatorPlugin as sudoValidator. For usage of the multi-chain ecdsa validator, refer to the example in `multi-chain` directory. For the multi-chain webauthn validator, refer to this [repo](https://github.com/zerodevapp/multi-chain-passkey-example)
 }
 
 main()

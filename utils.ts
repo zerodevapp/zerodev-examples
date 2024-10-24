@@ -33,6 +33,7 @@ const signer = privateKeyToAccount(privateKey as Hex);
 const chain = sepolia;
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
+  chain
 });
 
 export const getKernelClient = async <entryPoint extends EntryPoint>(
@@ -77,9 +78,7 @@ export const getKernelClient = async <entryPoint extends EntryPoint>(
   });
 };
 
-export const getKernelV1Account = async (): Promise<
-  KernelSmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE>
-> => {
+export const getKernelV1Account = async () => {
   const privateKey = process.env.PRIVATE_KEY as Hex;
   if (!privateKey) {
     throw new Error("PRIVATE_KEY environment variable not set");
@@ -92,6 +91,7 @@ export const getKernelV1Account = async (): Promise<
 
   const publicClient = createPublicClient({
     transport: http(rpcUrl),
+    chain
   });
   const signer = privateKeyToAccount(privateKey);
 
@@ -102,7 +102,7 @@ export const getKernelV1Account = async (): Promise<
   }) as unknown as KernelSmartAccount<
     ENTRYPOINT_ADDRESS_V06_TYPE,
     Transport,
-    Chain
+    typeof chain
   >;
 };
 
@@ -110,8 +110,8 @@ export const getKernelV1AccountClient = async ({
   account,
   middleware,
 }: Middleware<ENTRYPOINT_ADDRESS_V06_TYPE> & {
-  account?: KernelSmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE>;
-} = {}) => {
+  account: KernelSmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE, Transport, typeof chain>
+}) => {
   const zeroDevBundlerRpcHost = process.env.BUNDLER_RPC;
   return createKernelAccountClient({
     account,
@@ -119,12 +119,7 @@ export const getKernelV1AccountClient = async ({
     bundlerTransport: http(zeroDevBundlerRpcHost),
     middleware,
     entryPoint: ENTRYPOINT_ADDRESS_V06,
-  }) as KernelAccountClient<
-    EntryPoint,
-    Transport,
-    Chain,
-    KernelSmartAccount<EntryPoint>
-  >;
+  })
 };
 
 export const getZeroDevPaymasterClient = <entryPoint extends EntryPoint>(

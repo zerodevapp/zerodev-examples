@@ -23,13 +23,14 @@ if (
 ) {
     throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set")
 }
-
+const chain = sepolia
 const publicClient = createPublicClient({
-    transport: http(process.env.BUNDLER_RPC)
+    transport: http(process.env.BUNDLER_RPC),
+    chain
 })
 
 const signer = privateKeyToAccount(generatePrivateKey())
-const chain = sepolia
+
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 
 const Test_ERC20Address = "0x3870419Ba2BBf0127060bCB37f69A1b1C090992B"

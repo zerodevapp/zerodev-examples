@@ -30,6 +30,7 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
+  chain: sepolia
 });
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
