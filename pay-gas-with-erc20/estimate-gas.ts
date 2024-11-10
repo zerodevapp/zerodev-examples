@@ -6,27 +6,27 @@ import {
     createZeroDevPaymasterClient,
     gasTokenAddresses
 } from "@zerodev/sdk"
-import { ENTRYPOINT_ADDRESS_V06 } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V07 } from "permissionless"
 import { createPublicClient, http, zeroAddress } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
-import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 const chain = sepolia
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
-  chain
+    transport: http(process.env.BUNDLER_RPC),
+    chain
 });
 
 const signer = privateKeyToAccount(generatePrivateKey());
-const entryPoint = ENTRYPOINT_ADDRESS_V06;
+const entryPoint = ENTRYPOINT_ADDRESS_V07;
 
 
 const main = async () => {
     const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
         signer,
         entryPoint,
-        kernelVersion: KERNEL_V2_4
+        kernelVersion: KERNEL_V3_1
     })
 
     const account = await createKernelAccount(publicClient, {
@@ -34,7 +34,7 @@ const main = async () => {
             sudo: ecdsaValidator
         },
         entryPoint,
-        kernelVersion: KERNEL_V2_4
+        kernelVersion: KERNEL_V3_1
     })
 
     const paymasterClient = createZeroDevPaymasterClient({
@@ -58,20 +58,21 @@ const main = async () => {
         },
     })
 
-  const userOperation = await kernelClient.prepareUserOperationRequest({
-    userOperation: {
-      callData: await account.encodeCallData({
-        to: zeroAddress,
-        value: BigInt(0),
-        data: "0x",
-      }),
-    },
-    account,
-  });
+    const userOperation = await kernelClient.prepareUserOperationRequest({
+        userOperation: {
+            callData: await account.encodeCallData({
+                to: zeroAddress,
+                value: BigInt(0),
+                data: "0x",
+            }),
+        },
+        account,
+    });
 
+    const SEPOLIA_USDC_ADDRESS = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
     const result = await paymasterClient.estimateGasInERC20({
         userOperation,
-        gasTokenAddress: gasTokenAddresses[chain.id]["6TEST"],
+        gasTokenAddress: SEPOLIA_USDC_ADDRESS,
         entryPoint
     })
 

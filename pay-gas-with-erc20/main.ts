@@ -8,12 +8,12 @@ import {
   ZeroDevPaymasterClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { ENTRYPOINT_ADDRESS_V06, UserOperation, bundlerActions } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V07, UserOperation, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress, encodeFunctionData, parseAbi, parseEther } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { EntryPoint } from "permissionless/types/entrypoint"
-import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -33,7 +33,7 @@ const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const TEST_ERC20_ABI = parseAbi([
   "function mint(address to, uint256 amount) external",
 ]);
-const entryPoint = ENTRYPOINT_ADDRESS_V06;
+const entryPoint = ENTRYPOINT_ADDRESS_V07;
 
 
 
@@ -41,7 +41,7 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-    kernelVersion: KERNEL_V2_4
+    kernelVersion: KERNEL_V3_1
   })
 
   const account = await createKernelAccount(publicClient, {
@@ -49,7 +49,7 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
-    kernelVersion: KERNEL_V2_4
+    kernelVersion: KERNEL_V3_1
   })
 
   const paymasterClient = createZeroDevPaymasterClient({
@@ -58,6 +58,7 @@ const main = async () => {
     transport: http(process.env.PAYMASTER_RPC),
   });
 
+  const SEPOLIA_USDC_ADDRESS = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
   const kernelClient = createKernelAccountClient({
     entryPoint,
     account,
@@ -68,7 +69,7 @@ const main = async () => {
         return paymasterClient.sponsorUserOperation({
           userOperation,
           entryPoint,
-          gasToken: gasTokenAddresses[chain.id]['6TEST'],
+          gasToken: SEPOLIA_USDC_ADDRESS,
         })
       },
     },
@@ -82,20 +83,13 @@ const main = async () => {
   // You just need to make sure that the account has enough ERC20 tokens
   // and that it has approved the paymaster with enough tokens to pay for
   // the gas.
+
+  // You can get testnet USDC from https://faucet.circle.com/
   const userOpHash = await kernelClient.sendUserOperation({
     userOperation: {
       callData: await account.encodeCallData([
-        {
-          to: gasTokenAddresses[chain.id]["6TEST"],
-          data: encodeFunctionData({
-            abi: TEST_ERC20_ABI,
-            functionName: "mint",
-            args: [account.address, BigInt(100000000)]
-          }),
-          value: BigInt(0),
-        },
         await getERC20PaymasterApproveCall(paymasterClient as ZeroDevPaymasterClient<EntryPoint>, {
-          gasToken: gasTokenAddresses[chain.id]["6TEST"],
+          gasToken: SEPOLIA_USDC_ADDRESS,
           approveAmount: parseEther('1'),
           entryPoint
         }),
