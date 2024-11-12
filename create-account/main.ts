@@ -1,15 +1,36 @@
 import "dotenv/config"
 import {
   createKernelAccount,
-  createZeroDevPaymasterClient,
   createKernelAccountClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
+import { ENTRYPOINT_ADDRESS_V06, bundlerActions } from "permissionless"
 import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
+import { defineChain } from 'viem'
+
+export const unrealTestnet = defineChain({
+  id: 18233,
+  name: 'Unreal Testnet',
+  network: 'unrealTestnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Real Ether',
+    symbol: 'reETH',
+  },
+  rpcUrls: {
+    default: { http: ['https://rpc.unreal-orbit.gelato.digital'] },
+    public: { http: ['https://rpc.unreal-orbit.gelato.digital'] },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Block Explorer',
+      url: 'https://unreal.blockscout.com/',
+    },
+  },
+  testnet: true,
+})
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -19,15 +40,15 @@ if (
   throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set")
 }
 
-const chain = sepolia
+const chain = unrealTestnet
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
   chain
 })
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const entryPoint = ENTRYPOINT_ADDRESS_V07
-const kernelVersion = KERNEL_V3_1
+const entryPoint = ENTRYPOINT_ADDRESS_V06
+const kernelVersion = KERNEL_V2_4
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
@@ -50,19 +71,6 @@ const main = async () => {
     entryPoint,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: async ({ userOperation }) => {
-        const paymasterClient = createZeroDevPaymasterClient({
-          chain,
-          transport: http(process.env.PAYMASTER_RPC),
-          entryPoint,
-        })
-        return paymasterClient.sponsorUserOperation({
-          userOperation,
-          entryPoint,
-        })
-      },
-    },
   })
 
   const userOpHash = await kernelClient.sendUserOperation({
@@ -72,6 +80,10 @@ const main = async () => {
         value: BigInt(0),
         data: "0x",
       }),
+      // @ts-ignore
+      maxFeePerGas: "0x0",
+      // @ts-ignore
+      maxPriorityFeePerGas: "0x0",
     },
   })
 
@@ -80,6 +92,8 @@ const main = async () => {
   const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
   const _receipt = await bundlerClient.waitForUserOperationReceipt({
     hash: userOpHash,
+    pollingInterval: 500,
+    timeout: 120000,
   })
 
   console.log("userOp completed")
