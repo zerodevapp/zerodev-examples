@@ -4,16 +4,11 @@ import {
   createZeroDevPaymasterClient,
   createKernelAccountClient,
 } from "@zerodev/sdk";
-import {
-  ENTRYPOINT_ADDRESS_V07,
-  UserOperation,
-  bundlerActions,
-} from "permissionless";
 import { http, Hex, createPublicClient, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { createWeightedECDSAValidator } from "@zerodev/weighted-ecdsa-validator";
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -25,13 +20,13 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
-  chain: sepolia
+  chain: sepolia,
 });
 
 const signer1 = privateKeyToAccount(generatePrivateKey());
 const signer2 = privateKeyToAccount(generatePrivateKey());
 const signer3 = privateKeyToAccount(generatePrivateKey());
-export const entryPoint = ENTRYPOINT_ADDRESS_V07;
+export const entryPoint = getEntryPoint("0.7");
 
 const main = async () => {
   const multisigValidator = await createWeightedECDSAValidator(publicClient, {
@@ -45,7 +40,7 @@ const main = async () => {
       ],
     },
     signers: [signer2, signer3],
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -53,7 +48,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator,
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({
@@ -63,31 +58,27 @@ const main = async () => {
   });
 
   const kernelClient = createKernelAccountClient({
-    entryPoint,
     account,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
-    },
+    paymaster: kernelPaymaster,
   });
 
   console.log("My account:", kernelClient.account.address);
 
   const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: await account.encodeCallData({
+    callData: await account.encodeCalls([
+      {
         to: zeroAddress,
         value: BigInt(0),
         data: "0x",
-      }),
-    },
+      },
+    ]),
   });
 
   console.log("userOp hash:", userOpHash);
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint));
-  await bundlerClient.waitForUserOperationReceipt({
+  await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
   console.log("UserOp completed!");

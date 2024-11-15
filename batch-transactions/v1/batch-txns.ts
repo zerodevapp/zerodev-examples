@@ -5,28 +5,19 @@ import {
   getKernelV1AccountClient,
   getZeroDevPaymasterClient,
 } from "../../utils";
-import { createPimlicoBundlerClient } from "permissionless/clients/pimlico";
-import { ENTRYPOINT_ADDRESS_V06 } from "permissionless";
 
 async function main() {
   const kernelAccount = await getKernelV1Account();
+  const paymaster = getZeroDevPaymasterClient();
   const kernelClient = await getKernelV1AccountClient({
     account: kernelAccount,
-    middleware: {
-      sponsorUserOperation: async ({ userOperation, entryPoint }) => {
-        const zerodevPaymaster = getZeroDevPaymasterClient(entryPoint);
-        return zerodevPaymaster.sponsorUserOperation({
-          userOperation,
-          entryPoint,
-        });
-      },
-    },
+    paymaster,
   });
 
   console.log("Account address:", kernelClient.account.address);
 
-  const txnHash = await kernelClient.sendTransactions({
-    transactions: [
+  const txnHash = await kernelClient.sendTransaction({
+    calls: [
       {
         to: zeroAddress,
         value: BigInt(0),

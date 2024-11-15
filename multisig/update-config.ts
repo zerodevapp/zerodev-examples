@@ -9,7 +9,6 @@ import {
   createZeroDevPaymasterClient,
   createKernelAccountClient,
 } from "@zerodev/sdk";
-import { UserOperation, bundlerActions } from "permissionless";
 import { http, createPublicClient, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -17,7 +16,7 @@ import {
   createWeightedECDSAValidator,
   getUpdateConfigCall,
   getCurrentSigners,
-  getValidatorAddress
+  getValidatorAddress,
 } from "@zerodev/weighted-ecdsa-validator";
 import { WeightedValidatorAbi } from "./abi";
 import { entryPoint } from "./main";
@@ -33,7 +32,7 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
-  chain: sepolia
+  chain: sepolia,
 });
 
 const signer1 = privateKeyToAccount(generatePrivateKey());
@@ -62,7 +61,7 @@ const main = async () => {
     plugins: {
       sudo: multisigValidator,
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({
@@ -72,26 +71,20 @@ const main = async () => {
   });
 
   const kernelClient = createKernelAccountClient({
-    entryPoint,
     account,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
-    },
+    paymaster: kernelPaymaster,
   });
 
   console.log("My account:", kernelClient.account.address);
 
   console.log("sending userOp with signer 1 and 2...");
   const op1Hash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: "0x",
-    },
+    callData: "0x",
   });
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint));
-  await bundlerClient.waitForUserOperationReceipt({
+  await kernelClient.waitForUserOperationReceipt({
     hash: op1Hash,
   });
 
@@ -100,7 +93,7 @@ const main = async () => {
   const currentSigners = await getCurrentSigners(publicClient, {
     entryPoint,
     multiSigAccountAddress: account.address,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   console.log("current signers:", currentSigners);
@@ -148,26 +141,23 @@ const main = async () => {
   const multisigValidator2 = await createWeightedECDSAValidator(publicClient, {
     entryPoint,
     signers: [signer1, signer2, signer3],
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account2 = await createKernelAccount(publicClient, {
     entryPoint,
-    deployedAccountAddress: account.address,
+    address: account.address,
     plugins: {
       sudo: multisigValidator2,
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const kernelClient2 = createKernelAccountClient({
-    entryPoint,
     account: account2,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
-    },
+    paymaster: kernelPaymaster,
   });
 
   console.log("sending userOp with signer 1, 2 and 3...");
@@ -189,26 +179,23 @@ const main = async () => {
   const multisigValidator3 = await createWeightedECDSAValidator(publicClient, {
     entryPoint,
     signers: [signer2, signer3],
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account3 = await createKernelAccount(publicClient, {
     entryPoint,
-    deployedAccountAddress: account.address,
+    address: account.address,
     plugins: {
       sudo: multisigValidator3,
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const kernelClient3 = createKernelAccountClient({
-    entryPoint,
     account: account3,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
-    },
+    paymaster: kernelPaymaster,
   });
 
   console.log("sending userOp with signer 2 and 3 again...");
@@ -222,26 +209,23 @@ const main = async () => {
   const multisigValidator4 = await createWeightedECDSAValidator(publicClient, {
     entryPoint,
     signers: [signer1, signer3],
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account4 = await createKernelAccount(publicClient, {
     entryPoint,
-    deployedAccountAddress: account.address,
+    address: account.address,
     plugins: {
       sudo: multisigValidator4,
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const kernelClient4 = createKernelAccountClient({
-    entryPoint,
     account: account4,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
-    },
+    paymaster: kernelPaymaster,
   });
 
   console.log("sending userOp with signer 1 and 3...");

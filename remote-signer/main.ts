@@ -1,156 +1,134 @@
-import "dotenv/config"
+import "dotenv/config";
 import {
-    createKernelAccount,
-    createZeroDevPaymasterClient,
-    createKernelAccountClient
-} from "@zerodev/sdk"
-import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { toPermissionValidator } from "@zerodev/permissions"
-import { toRemoteSigner, RemoteSignerMode } from "@zerodev/remote-signer"
-import { toSudoPolicy } from "@zerodev/permissions/policies"
-import { ENTRYPOINT_ADDRESS_V07 } from "permissionless"
-import { http, Hex, createPublicClient, zeroAddress } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
-import { toECDSASigner } from "@zerodev/permissions/signers"
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+  createKernelAccount,
+  createZeroDevPaymasterClient,
+  createKernelAccountClient,
+} from "@zerodev/sdk";
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+import { toPermissionValidator } from "@zerodev/permissions";
+import { toRemoteSigner, RemoteSignerMode } from "@zerodev/remote-signer";
+import { toSudoPolicy } from "@zerodev/permissions/policies";
+import { http, Hex, createPublicClient, zeroAddress } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
+import { toECDSASigner } from "@zerodev/permissions/signers";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
-    !process.env.BUNDLER_RPC ||
-    !process.env.PAYMASTER_RPC ||
-    !process.env.PRIVATE_KEY ||
-    !process.env.ZERODEV_API_KEY
+  !process.env.BUNDLER_RPC ||
+  !process.env.PAYMASTER_RPC ||
+  !process.env.PRIVATE_KEY ||
+  !process.env.ZERODEV_API_KEY
 ) {
-    throw new Error(
-        "BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY or ZERODEV_API_KEY is not set"
-    )
+  throw new Error(
+    "BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY or ZERODEV_API_KEY is not set"
+  );
 }
-const chain = sepolia
+const chain = sepolia;
 const publicClient = createPublicClient({
-    transport: http(process.env.BUNDLER_RPC),
-    chain
-})
+  transport: http(process.env.BUNDLER_RPC),
+  chain,
+});
 
-const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
+const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 
-const entryPoint = ENTRYPOINT_ADDRESS_V07
-const apiKey = process.env.ZERODEV_API_KEY
+const entryPoint = getEntryPoint("0.7");
+const apiKey = process.env.ZERODEV_API_KEY;
 
 const main = async () => {
-    const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
-        signer,
-        entryPoint,
-        kernelVersion: KERNEL_V3_1
-    })
+  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+    signer,
+    entryPoint,
+    kernelVersion: KERNEL_V3_1,
+  });
 
-    // first we create the remote signer in create mode
-    const remoteSigner = await toRemoteSigner({
-        apiKey,
-        mode: RemoteSignerMode.Create
-    })
+  // first we create the remote signer in create mode
+  const remoteSigner = await toRemoteSigner({
+    apiKey,
+    mode: RemoteSignerMode.Create,
+  });
 
-    // now we get the ecdsa signer using the remote signer
-    const ecdsaSigner = toECDSASigner({ signer: remoteSigner })
+  // now we get the ecdsa signer using the remote signer
+  const ecdsaSigner = await toECDSASigner({ signer: remoteSigner });
 
-    const permissionPlugin = await toPermissionValidator(publicClient, {
-        entryPoint,
-        signer: ecdsaSigner,
-        policies: [toSudoPolicy({})],
-        kernelVersion: KERNEL_V3_1
-    })
+  const permissionPlugin = await toPermissionValidator(publicClient, {
+    entryPoint,
+    signer: ecdsaSigner,
+    policies: [toSudoPolicy({})],
+    kernelVersion: KERNEL_V3_1,
+  });
 
-    const account = await createKernelAccount(publicClient, {
-        plugins: {
-            sudo: ecdsaValidator,
-            regular: permissionPlugin
-        },
-        entryPoint,
-        kernelVersion: KERNEL_V3_1
-    })
-    console.log("My account:", account.address)
+  const account = await createKernelAccount(publicClient, {
+    plugins: {
+      sudo: ecdsaValidator,
+      regular: permissionPlugin,
+    },
+    entryPoint,
+    kernelVersion: KERNEL_V3_1,
+  });
+  console.log("My account:", account.address);
 
-    const kernelClient = createKernelAccountClient({
-        account,
-        entryPoint,
-        chain,
-        bundlerTransport: http(process.env.BUNDLER_RPC),
-        middleware: {
-            sponsorUserOperation: async ({ userOperation }) => {
-                const paymasterClient = createZeroDevPaymasterClient({
-                    chain,
-                    transport: http(process.env.PAYMASTER_RPC),
-                    entryPoint
-                })
-                return paymasterClient.sponsorUserOperation({
-                    userOperation,
-                    entryPoint
-                })
-            }
-        }
-    })
+  const paymasterClient = createZeroDevPaymasterClient({
+    chain,
+    transport: http(process.env.PAYMASTER_RPC),
+  });
 
-    const txHash = await kernelClient.sendTransaction({
-        to: zeroAddress,
-        value: BigInt(0),
-        data: "0x"
-    })
+  const kernelClient = createKernelAccountClient({
+    account,
+    chain,
+    bundlerTransport: http(process.env.BUNDLER_RPC),
+    paymaster: paymasterClient,
+  });
 
-    console.log("txHash hash:", txHash)
+  const txHash = await kernelClient.sendTransaction({
+    to: zeroAddress,
+    value: BigInt(0),
+    data: "0x",
+  });
 
-    // now we get the remote signer in get mode
-    const remoteSignerWithGet = await toRemoteSigner({
-        apiKey,
-        keyAddress: remoteSigner.address, // specify the account address to get
-        mode: RemoteSignerMode.Get
-    })
+  console.log("txHash hash:", txHash);
 
-    const ecdsaSigner2 = toECDSASigner({ signer: remoteSignerWithGet })
+  // now we get the remote signer in get mode
+  const remoteSignerWithGet = await toRemoteSigner({
+    apiKey,
+    keyAddress: remoteSigner.address, // specify the account address to get
+    mode: RemoteSignerMode.Get,
+  });
 
-    const permissionPlugin2 = await toPermissionValidator(publicClient, {
-        entryPoint,
-        signer: ecdsaSigner2,
-        policies: [toSudoPolicy({})],
-        kernelVersion: KERNEL_V3_1
-    })
+  const ecdsaSigner2 = await toECDSASigner({ signer: remoteSignerWithGet });
 
-    const account2 = await createKernelAccount(publicClient, {
-        plugins: {
-            sudo: ecdsaValidator,
-            regular: permissionPlugin2
-        },
-        entryPoint,
-        kernelVersion: KERNEL_V3_1
-    })
+  const permissionPlugin2 = await toPermissionValidator(publicClient, {
+    entryPoint,
+    signer: ecdsaSigner2,
+    policies: [toSudoPolicy({})],
+    kernelVersion: KERNEL_V3_1,
+  });
 
-    console.log("My account2:", account2.address)
+  const account2 = await createKernelAccount(publicClient, {
+    plugins: {
+      sudo: ecdsaValidator,
+      regular: permissionPlugin2,
+    },
+    entryPoint,
+    kernelVersion: KERNEL_V3_1,
+  });
 
-    const kernelClient2 = createKernelAccountClient({
-        account: account2,
-        entryPoint,
-        chain,
-        bundlerTransport: http(process.env.BUNDLER_RPC),
-        middleware: {
-            sponsorUserOperation: async ({ userOperation }) => {
-                const paymasterClient = createZeroDevPaymasterClient({
-                    chain,
-                    transport: http(process.env.PAYMASTER_RPC),
-                    entryPoint
-                })
-                return paymasterClient.sponsorUserOperation({
-                    userOperation,
-                    entryPoint
-                })
-            }
-        }
-    })
+  console.log("My account2:", account2.address);
 
-    const txHash2 = await kernelClient2.sendTransaction({
-        to: zeroAddress,
-        value: BigInt(0),
-        data: "0x"
-    })
+  const kernelClient2 = createKernelAccountClient({
+    account: account2,
+    chain,
+    bundlerTransport: http(process.env.BUNDLER_RPC),
+    paymaster: paymasterClient,
+  });
 
-    console.log("txHash hash:", txHash2)
-}
+  const txHash2 = await kernelClient2.sendTransaction({
+    to: zeroAddress,
+    value: BigInt(0),
+    data: "0x",
+  });
 
-main()
+  console.log("txHash hash:", txHash2);
+};
+
+main();
