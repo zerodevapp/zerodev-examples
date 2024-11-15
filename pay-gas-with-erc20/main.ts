@@ -5,7 +5,6 @@ import {
   createKernelAccountClient,
   getERC20PaymasterApproveCall,
   gasTokenAddresses,
-  ZeroDevPaymasterClient,
 } from "@zerodev/sdk";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import {
@@ -19,7 +18,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { getEntryPoint, KERNEL_V2_4 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -39,13 +38,13 @@ const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const TEST_ERC20_ABI = parseAbi([
   "function mint(address to, uint256 amount) external",
 ]);
-const entryPoint = getEntryPoint("0.6");
+const entryPoint = getEntryPoint("0.7");
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-    kernelVersion: KERNEL_V2_4,
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -53,7 +52,7 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
-    kernelVersion: KERNEL_V2_4,
+    kernelVersion: KERNEL_V3_1,
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
@@ -67,7 +66,9 @@ const main = async () => {
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     paymaster: paymasterClient,
-    paymasterContext: { token: gasTokenAddresses[chain.id]["USDC"] },
+    paymasterContext: {
+      token: gasTokenAddresses[sepolia.id]["USDC"],
+    },
   });
 
   console.log("My account:", account.address);
@@ -78,17 +79,16 @@ const main = async () => {
   // You just need to make sure that the account has enough ERC20 tokens
   // and that it has approved the paymaster with enough tokens to pay for
   // the gas.
+
+  // You can get testnet USDC from https://faucet.circle.com/
   const userOpHash = await kernelClient.sendUserOperation({
     callData: await account.encodeCalls([
-      {
-        to: gasTokenAddresses[chain.id]["6TEST"],
-        data: encodeFunctionData({
-          abi: TEST_ERC20_ABI,
-          functionName: "mint",
-          args: [account.address, BigInt(100000000)],
-        }),
-        value: BigInt(0),
-      },
+      await getERC20PaymasterApproveCall(paymasterClient, {
+        gasToken: gasTokenAddresses[sepolia.id]["USDC"],
+        approveAmount: parseEther("1"),
+        entryPoint,
+      }),
+
       await getERC20PaymasterApproveCall(paymasterClient, {
         gasToken: gasTokenAddresses[chain.id]["6TEST"],
         approveAmount: parseEther("1"),

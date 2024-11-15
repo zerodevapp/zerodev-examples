@@ -9,7 +9,7 @@ import {
 import { createPublicClient, http, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { getEntryPoint, KERNEL_V2_4 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 const chain = sepolia;
 const publicClient = createPublicClient({
@@ -18,13 +18,13 @@ const publicClient = createPublicClient({
 });
 
 const signer = privateKeyToAccount(generatePrivateKey());
-const entryPoint = getEntryPoint("0.6");
+const entryPoint = getEntryPoint("0.7");
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
-    kernelVersion: KERNEL_V2_4,
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -32,7 +32,7 @@ const main = async () => {
       sudo: ecdsaValidator,
     },
     entryPoint,
-    kernelVersion: KERNEL_V2_4,
+    kernelVersion: KERNEL_V3_1,
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
