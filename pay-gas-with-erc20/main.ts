@@ -90,7 +90,7 @@ const main = async () => {
       }),
 
       await getERC20PaymasterApproveCall(paymasterClient, {
-        gasToken: gasTokenAddresses[chain.id]["6TEST"],
+        gasToken: gasTokenAddresses[chain.id]["USDC"],
         approveAmount: parseEther("1"),
         entryPoint,
       }),
