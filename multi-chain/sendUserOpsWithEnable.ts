@@ -149,7 +149,7 @@ const main = async () => {
     const sepoliaZerodevKernelClient = createKernelMultiChainClient({
         account: sepoliaKernelAccount,
         chain: sepolia,
-        bundlerTransport: http(SEPOLIA_ZERODEV_RPC_URL),
+        bundlerTransport: http(SEPOLIA_ZERODEV_RPC_URL, {timeout: 100000}),
         middleware: {
             sponsorUserOperation: async ({ userOperation }) => {
                 return sepoliaZeroDevPaymasterClient.sponsorUserOperation({
@@ -164,7 +164,7 @@ const main = async () => {
     const optimismSepoliaZerodevKernelClient = createKernelMultiChainClient({
         account: optimismSepoliaKernelAccount,
         chain: optimismSepolia,
-        bundlerTransport: http(OPTIMISM_SEPOLIA_ZERODEV_RPC_URL),
+        bundlerTransport: http(OPTIMISM_SEPOLIA_ZERODEV_RPC_URL, {timeout: 100000}),
         middleware: {
             sponsorUserOperation: async ({ userOperation }) => {
                 return opSepoliaZeroDevPaymasterClient.sponsorUserOperation({
@@ -210,6 +210,7 @@ const main = async () => {
                 userOp: sepoliaUserOp
             },
             {
+                // @ts-ignore
                 account: optimismSepoliaKernelAccount,
                 userOp: optimismSepoliaUserOp
             }
