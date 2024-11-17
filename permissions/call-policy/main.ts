@@ -121,7 +121,11 @@ const main = async () => {
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: paymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymasterClient.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   // mint user op

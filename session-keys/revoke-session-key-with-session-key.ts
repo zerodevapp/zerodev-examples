@@ -85,7 +85,6 @@ const useSessionKey = async (
   console.log("Session key account:", sessionKeyAccount.address);
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
@@ -93,7 +92,11 @@ const useSessionKey = async (
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
@@ -129,7 +132,6 @@ const revokeSessionKey = async (
   );
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
@@ -137,7 +139,11 @@ const revokeSessionKey = async (
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const emptyAccount = addressToEmptyAccount(sessionKeyAddress);
@@ -158,7 +164,9 @@ const revokeSessionKey = async (
     plugin: permissionPlugin,
   });
   console.log("unInstallTx userOpHash:", unInstallUserOpHash);
-  const receipt = await kernelClient.waitForUserOperationReceipt({ hash: unInstallUserOpHash });
+  const receipt = await kernelClient.waitForUserOperationReceipt({
+    hash: unInstallUserOpHash,
+  });
   console.log("unInstallTx txHash:", receipt.receipt.transactionHash);
 };
 

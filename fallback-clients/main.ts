@@ -44,7 +44,11 @@ async function main() {
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC + "_make_it_fail" + '?provider=PIMLICO'),
-    paymaster: pimlicoPaymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return pimlicoPaymasterClient.sponsorUserOperation({ userOperation });
+      },
+    },
   })
 
   const alchemyPaymasterClient = createZeroDevPaymasterClient({
@@ -56,7 +60,11 @@ async function main() {
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC + '?provider=ALCHEMY'),
-    paymaster: alchemyPaymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return alchemyPaymasterClient.sponsorUserOperation({ userOperation });
+      },
+    },
   })
 
   const fallbackKernelClient = createFallbackKernelAccountClient([

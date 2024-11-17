@@ -136,27 +136,37 @@ const main = async () => {
   const sepoliaZeroDevPaymasterClient = createZeroDevPaymasterClient({
     chain: sepolia,
     transport: http(SEPOLIA_ZERODEV_PAYMASTER_RPC_URL),
-    entryPoint,
   });
 
   const opSepoliaZeroDevPaymasterClient = createZeroDevPaymasterClient({
     chain: optimismSepolia,
     transport: http(OPTIMISM_SEPOLIA_ZERODEV_PAYMASTER_RPC_URL),
-    entryPoint,
   });
 
   const sepoliaZerodevKernelClient = createKernelAccountClient({
     account: sepoliaKernelAccount,
     chain: sepolia,
     bundlerTransport: http(SEPOLIA_ZERODEV_RPC_URL),
-    paymaster: sepoliaZeroDevPaymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return sepoliaZeroDevPaymasterClient.sponsorUserOperation({
+          userOperation,
+        });
+      },
+    },
   });
 
   const optimismSepoliaZerodevKernelClient = createKernelAccountClient({
     account: optimismSepoliaKernelAccount,
     chain: optimismSepolia,
     bundlerTransport: http(OPTIMISM_SEPOLIA_ZERODEV_RPC_URL),
-    paymaster: opSepoliaZeroDevPaymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return opSepoliaZeroDevPaymasterClient.sponsorUserOperation({
+          userOperation,
+        });
+      },
+    },
   });
 
   const sepoliaUserOp = await sepoliaZerodevKernelClient.prepareUserOperation({

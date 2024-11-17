@@ -11,7 +11,11 @@ async function main() {
   const paymaster = getZeroDevPaymasterClient();
   const kernelClient = await getKernelV1AccountClient({
     account: kernelAccount,
-    paymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   console.log("Account address:", kernelClient.account.address);

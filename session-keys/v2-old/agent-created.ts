@@ -35,7 +35,7 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
-  chain: sepolia
+  chain: sepolia,
 });
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
@@ -122,7 +122,6 @@ const useSessionKey = async (
   );
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
@@ -130,7 +129,11 @@ const useSessionKey = async (
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const userOpHash = await kernelClient.sendUserOperation({

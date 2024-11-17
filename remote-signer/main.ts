@@ -77,7 +77,11 @@ const main = async () => {
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: paymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymasterClient.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const txHash = await kernelClient.sendTransaction({
@@ -119,7 +123,11 @@ const main = async () => {
     account: account2,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: paymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymasterClient.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const txHash2 = await kernelClient2.sendTransaction({

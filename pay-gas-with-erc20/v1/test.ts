@@ -37,7 +37,6 @@ const main = async () => {
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(
       `https://rpc.zerodev.app/api/v2/paymaster/${process.env.ZERODEV_PROJECT_ID}`

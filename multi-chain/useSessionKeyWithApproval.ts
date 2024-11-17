@@ -189,13 +189,11 @@ const main = async () => {
   const sepoliaZeroDevPaymasterClient = createZeroDevPaymasterClient({
     chain: sepolia,
     transport: http(SEPOLIA_ZERODEV_PAYMASTER_RPC_URL),
-    entryPoint,
   });
 
   const opSepoliaZeroDevPaymasterClient = createZeroDevPaymasterClient({
     chain: optimismSepolia,
     transport: http(OPTIMISM_SEPOLIA_ZERODEV_PAYMASTER_RPC_URL),
-    entryPoint,
   });
 
   // use createKernelMultiChainClient to support multi-chain operations instead of createKernelAccountClient
@@ -204,7 +202,13 @@ const main = async () => {
     account: deserializeSepoliaKernelAccount,
     chain: sepolia,
     bundlerTransport: http(SEPOLIA_ZERODEV_RPC_URL),
-    paymaster: sepoliaZeroDevPaymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return sepoliaZeroDevPaymasterClient.sponsorUserOperation({
+          userOperation,
+        });
+      },
+    },
   });
 
   const optimismSepoliaZerodevKernelClient = createKernelAccountClient({
@@ -212,7 +216,13 @@ const main = async () => {
     account: deserializeOptimismSepoliaKernelAccount,
     chain: optimismSepolia,
     bundlerTransport: http(OPTIMISM_SEPOLIA_ZERODEV_RPC_URL),
-    paymaster: opSepoliaZeroDevPaymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return opSepoliaZeroDevPaymasterClient.sponsorUserOperation({
+          userOperation,
+        });
+      },
+    },
   });
 
   // send user ops. you don't need additional enables like `signUserOpsWithEnable`, since it already has the approvals with serialized account

@@ -97,7 +97,6 @@ const useSessionKey = async (serializedSessionKey: string) => {
   );
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
@@ -105,7 +104,11 @@ const useSessionKey = async (serializedSessionKey: string) => {
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const userOpHash = await kernelClient.sendUserOperation({

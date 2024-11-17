@@ -65,7 +65,6 @@ const main = async () => {
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
@@ -74,7 +73,11 @@ const main = async () => {
     account,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   console.log("My account:", kernelClient.account.address);
@@ -157,7 +160,11 @@ const main = async () => {
     account: account2,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   console.log("sending userOp with signer 1, 2 and 3...");
@@ -195,7 +202,11 @@ const main = async () => {
     account: account3,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   console.log("sending userOp with signer 2 and 3 again...");
@@ -225,7 +236,11 @@ const main = async () => {
     account: account4,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: kernelPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   console.log("sending userOp with signer 1 and 3...");

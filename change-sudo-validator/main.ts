@@ -53,7 +53,11 @@ const main = async () => {
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   // initialize multiChainECDSAValidatorPlugin

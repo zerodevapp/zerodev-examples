@@ -1,4 +1,4 @@
-// Check the example here: https://github.com/zerodevapp/zerodev-examples/blob/v5.3.x/chain-abstraction/regular-validator.ts
+// 🔗🔗 Check the example here: https://github.com/zerodevapp/zerodev-examples/blob/v5.3.x/chain-abstraction/regular-validator.ts
 
 // import "dotenv/config"
 // import {

@@ -75,14 +75,17 @@ const main = async () => {
   const paymasterClient = createZeroDevPaymasterClient({
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
-    entryPoint,
   });
 
   const kernelClient = createKernelAccountClient({
     account,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: paymasterClient,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymasterClient.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   console.log("performing recovery...");

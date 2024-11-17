@@ -57,7 +57,6 @@ const main = async () => {
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain,
-    entryPoint,
     transport: http(process.env.PAYMASTER_RPC),
   });
 

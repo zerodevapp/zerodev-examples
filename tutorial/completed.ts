@@ -63,7 +63,11 @@ const main = async () => {
     account,
     chain,
     bundlerTransport: http(BUNDLER_RPC),
-    paymaster: zerodevPaymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return zerodevPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const accountAddress = kernelClient.account.address;

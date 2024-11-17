@@ -76,7 +76,11 @@ const main = async () => {
     account: kernelAccount,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymaster.sponsorUserOperation({ userOperation });
+      },
+    },
   });
 
   const amountToMint = BigInt(10000);
