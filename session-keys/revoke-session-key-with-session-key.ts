@@ -6,7 +6,6 @@ import {
   addressToEmptyAccount,
 } from "@zerodev/sdk";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless";
 import { http, Hex, createPublicClient, Address, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -18,7 +17,7 @@ import {
   serializePermissionAccount,
   toPermissionValidator,
 } from "@zerodev/permissions";
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -34,7 +33,7 @@ const publicClient = createPublicClient({
 });
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
+const entryPoint = getEntryPoint("0.7");
 
 const getApproval = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
@@ -86,34 +85,33 @@ const useSessionKey = async (
   console.log("Session key account:", sessionKeyAccount.address);
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
   const kernelClient = createKernelAccountClient({
-    entryPoint,
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
     },
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: await sessionKeyAccount.encodeCallData({
+    callData: await sessionKeyAccount.encodeCalls([
+      {
         to: zeroAddress,
         value: BigInt(0),
         data: "0x",
-      }),
-    },
+      },
+    ]),
   });
 
   console.log("userOp hash:", userOpHash);
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint));
-  const _receipt = await bundlerClient.waitForUserOperationReceipt({
+  const _receipt = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
     timeout: 1000 * 60 * 5,
   });
@@ -134,17 +132,17 @@ const revokeSessionKey = async (
   );
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
   const kernelClient = createKernelAccountClient({
-    entryPoint,
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
     },
   });
 
@@ -162,10 +160,14 @@ const revokeSessionKey = async (
     kernelVersion: KERNEL_V3_1,
   });
 
-  const unInstallTxHash = await kernelClient.uninstallPlugin({
+  const unInstallUserOpHash = await kernelClient.uninstallPlugin({
     plugin: permissionPlugin,
   });
-  console.log("unInstallTx hash:", unInstallTxHash);
+  console.log("unInstallTx userOpHash:", unInstallUserOpHash);
+  const receipt = await kernelClient.waitForUserOperationReceipt({
+    hash: unInstallUserOpHash,
+  });
+  console.log("unInstallTx txHash:", receipt.receipt.transactionHash);
 };
 
 const main = async () => {

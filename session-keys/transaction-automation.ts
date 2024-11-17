@@ -6,7 +6,6 @@ import {
   addressToEmptyAccount,
 } from "@zerodev/sdk";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless";
 import { http, Hex, createPublicClient, Address, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -18,7 +17,7 @@ import {
   serializePermissionAccount,
   toPermissionValidator,
 } from "@zerodev/permissions";
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -30,17 +29,17 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
-  chain: sepolia
+  chain: sepolia,
 });
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
+const entryPoint = getEntryPoint("0.7");
 
 const getApproval = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   // Create an "empty account" as the signer -- you only need the public
@@ -56,7 +55,7 @@ const getApproval = async (sessionKeyAddress: Address) => {
       // In practice, you would want to set more restrictive policies.
       toSudoPolicy({}),
     ],
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -65,7 +64,7 @@ const getApproval = async (sessionKeyAddress: Address) => {
       sudo: ecdsaValidator,
       regular: permissionPlugin,
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   return await serializePermissionAccount(sessionKeyAccount);
@@ -84,34 +83,33 @@ const useSessionKey = async (
   );
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
   const kernelClient = createKernelAccountClient({
-    entryPoint,
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
     },
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: await sessionKeyAccount.encodeCallData({
+    callData: await sessionKeyAccount.encodeCalls([
+      {
         to: zeroAddress,
         value: BigInt(0),
         data: "0x",
-      }),
-    },
+      },
+    ]),
   });
 
   console.log("userOp hash:", userOpHash);
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint));
-  const _receipt = await bundlerClient.waitForUserOperationReceipt({
+  const _receipt = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
   console.log({ txHash: _receipt.receipt.transactionHash });
@@ -121,29 +119,25 @@ const revokeSessionKey = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
   const sudoAccount = await createKernelAccount(publicClient, {
     plugins: {
       sudo: ecdsaValidator,
     },
     entryPoint,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
   const sudoKernelClient = createKernelAccountClient({
-    entryPoint,
     account: sudoAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
-    },
+    paymaster: kernelPaymaster,
   });
 
   const emptyAccount = addressToEmptyAccount(sessionKeyAddress);
@@ -157,13 +151,17 @@ const revokeSessionKey = async (sessionKeyAddress: Address) => {
       // In practice, you would want to set more restrictive policies.
       toSudoPolicy({}),
     ],
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
-  const unInstallTxHash = await sudoKernelClient.uninstallPlugin({
+  const unInstallUserOpHash = await sudoKernelClient.uninstallPlugin({
     plugin: permissionPlugin,
   });
-  console.log({ unInstallTxHash });
+  console.log({ unInstallUserOpHash });
+  const txReceipt = await sudoKernelClient.waitForUserOperationReceipt({
+    hash: unInstallUserOpHash,
+  });
+  console.log({ unInstallTxHash: txReceipt.receipt.transactionHash });
 };
 
 const main = async () => {

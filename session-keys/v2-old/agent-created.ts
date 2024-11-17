@@ -13,7 +13,6 @@ import {
   deserializeSessionKeyAccount,
   oneAddress,
 } from "@zerodev/session-key";
-import { ENTRYPOINT_ADDRESS_V06 } from "permissionless";
 import {
   http,
   Hex,
@@ -24,7 +23,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
-import { KERNEL_V2_4 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V2_4 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -36,6 +35,7 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
+  chain: sepolia,
 });
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
@@ -44,13 +44,13 @@ const contractABI = parseAbi([
   "function mint(address _to) public",
   "function balanceOf(address owner) external view returns (uint256 balance)",
 ]);
-const entryPoint = ENTRYPOINT_ADDRESS_V06;
+const entryPoint = getEntryPoint("0.6");
 
 const createSessionKey = async (sessionKeyAddress: Address) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-    kernelVersion: KERNEL_V2_4
+    kernelVersion: KERNEL_V2_4,
   });
 
   const masterAccount = await createKernelAccount(publicClient, {
@@ -58,7 +58,7 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
     plugins: {
       sudo: ecdsaValidator,
     },
-    kernelVersion: KERNEL_V2_4
+    kernelVersion: KERNEL_V2_4,
   });
   console.log("Account address:", masterAccount.address);
 
@@ -94,7 +94,7 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
         },
       ],
     },
-    kernelVersion: KERNEL_V2_4
+    kernelVersion: KERNEL_V2_4,
   });
 
   const sessionKeyAccount = await createKernelAccount(publicClient, {
@@ -103,7 +103,7 @@ const createSessionKey = async (sessionKeyAddress: Address) => {
       sudo: ecdsaValidator,
       regular: sessionKeyValidator,
     },
-    kernelVersion: KERNEL_V2_4
+    kernelVersion: KERNEL_V2_4,
   });
 
   return await serializeSessionKeyAccount(sessionKeyAccount);
@@ -122,23 +122,23 @@ const useSessionKey = async (
   );
 
   const kernelPaymaster = createZeroDevPaymasterClient({
-    entryPoint,
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
   });
   const kernelClient = createKernelAccountClient({
-    entryPoint,
     account: sessionKeyAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: kernelPaymaster.sponsorUserOperation,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return kernelPaymaster.sponsorUserOperation({ userOperation });
+      },
     },
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: await sessionKeyAccount.encodeCallData({
+    callData: await sessionKeyAccount.encodeCalls([
+      {
         to: contractAddress,
         value: BigInt(0),
         data: encodeFunctionData({
@@ -146,8 +146,8 @@ const useSessionKey = async (
           functionName: "mint",
           args: [sessionKeyAccount.address],
         }),
-      }),
-    },
+      },
+    ]),
   });
 
   console.log("userOp hash:", userOpHash);

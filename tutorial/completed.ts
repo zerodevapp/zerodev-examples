@@ -1,11 +1,14 @@
-import "dotenv/config"
-import { createPublicClient, encodeFunctionData, http, parseAbi } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
-import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk"
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import "dotenv/config";
+import { createPublicClient, encodeFunctionData, http, parseAbi } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+import {
+  createKernelAccount,
+  createKernelAccountClient,
+  createZeroDevPaymasterClient,
+} from "@zerodev/sdk";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (!process.env.ZERODEV_PROJECT_ID) {
   throw new Error("ZERODEV_PROJECT_ID is not set");
@@ -22,13 +25,12 @@ const contractABI = parseAbi([
 ]);
 
 // Construct a public client
-const chain = sepolia
+const chain = sepolia;
 const publicClient = createPublicClient({
   transport: http(BUNDLER_RPC),
-  chain
+  chain,
 });
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
-
+const entryPoint = getEntryPoint("0.7");
 
 const main = async () => {
   // Construct a signer
@@ -39,8 +41,8 @@ const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
     entryPoint,
-    kernelVersion: KERNEL_V3_1
-  })
+    kernelVersion: KERNEL_V3_1,
+  });
 
   // Construct a Kernel account
   const account = await createKernelAccount(publicClient, {
@@ -48,37 +50,33 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
     },
-    kernelVersion: KERNEL_V3_1
-  })
+    kernelVersion: KERNEL_V3_1,
+  });
+
+  const zerodevPaymaster = createZeroDevPaymasterClient({
+    chain,
+    transport: http(PAYMASTER_RPC),
+  });
 
   // Construct a Kernel account client
   const kernelClient = createKernelAccountClient({
     account,
     chain,
-    entryPoint,
     bundlerTransport: http(BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: async ({ userOperation }) => {
-        const zerodevPaymaster = createZeroDevPaymasterClient({
-          chain,
-          entryPoint,
-          transport: http(PAYMASTER_RPC),
-        })
-        return zerodevPaymaster.sponsorUserOperation({
-          userOperation,
-          entryPoint,
-        })
-      }
-    }
-  })
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return zerodevPaymaster.sponsorUserOperation({ userOperation });
+      },
+    },
+  });
 
   const accountAddress = kernelClient.account.address;
   console.log("My account:", accountAddress);
 
   // Send a UserOp
   const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: await kernelClient.account.encodeCallData({
+    callData: await kernelClient.account.encodeCalls([
+      {
         to: contractAddress,
         value: BigInt(0),
         data: encodeFunctionData({
@@ -86,18 +84,17 @@ const main = async () => {
           functionName: "mint",
           args: [accountAddress],
         }),
-      }),
-    },
+      },
+    ]),
   });
   console.log("Submitted UserOp:", userOpHash);
 
   // Wait for the UserOp to be included on-chain
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
-
-  const receipt = await bundlerClient.waitForUserOperationReceipt({
+  const receipt = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
   console.log("UserOp confirmed:", receipt.userOpHash);
+  console.log("TxHash:", receipt.receipt.transactionHash);
 
   // Print NFT balance
   const nftBalance = await publicClient.readContract({

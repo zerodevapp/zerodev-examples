@@ -1,27 +1,25 @@
 // Utilities for examples
 
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
-import { createEcdsaKernelAccountClient } from "@zerodev/presets/zerodev";
 import {
   KernelAccountClient,
-  KernelSmartAccount,
+  KernelSmartAccountV1Implementation,
   SponsorUserOperationParameters,
   createKernelAccount,
   createKernelAccountClient,
   createKernelAccountV1,
   createZeroDevPaymasterClient,
 } from "@zerodev/sdk";
+import { getEntryPoint } from "@zerodev/sdk/constants";
 import { GetKernelVersion } from "@zerodev/sdk/types";
-import { ENTRYPOINT_ADDRESS_V06, ENTRYPOINT_ADDRESS_V07 } from "permissionless";
-import { SmartAccount } from "permissionless/accounts";
-import { Middleware } from "permissionless/actions/smartAccount";
-import {
-  ENTRYPOINT_ADDRESS_V06_TYPE,
-  EntryPoint,
-} from "permissionless/types/entrypoint";
 import { Chain, Hex, Transport, createPublicClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygonMumbai, sepolia } from "viem/chains";
+import {
+  EntryPointVersion,
+  PaymasterActions,
+  SmartAccount,
+} from "viem/account-abstraction";
 
 const zeroDevProjectId = process.env.ZERODEV_PROJECT_ID;
 const privateKey = process.env.PRIVATE_KEY;
@@ -33,48 +31,38 @@ const signer = privateKeyToAccount(privateKey as Hex);
 const chain = sepolia;
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
-  chain
+  chain,
 });
 
-export const getKernelClient = async <entryPoint extends EntryPoint>(
-  entryPointAddress: entryPoint,
-  kernelVersion: GetKernelVersion<entryPoint>
+export const getKernelClient = async <
+  entryPointVersion extends EntryPointVersion
+>(
+  entryPointVersion_: entryPointVersion,
+  kernelVersion: GetKernelVersion<entryPointVersion>
 ) => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer,
-    entryPoint: entryPointAddress,
-    kernelVersion
+    entryPoint: getEntryPoint(entryPointVersion_),
+    kernelVersion,
   });
 
   const account = await createKernelAccount(publicClient, {
     plugins: {
       sudo: ecdsaValidator,
     },
-    entryPoint: entryPointAddress,
-    kernelVersion
+    entryPoint: getEntryPoint(entryPointVersion_),
+    kernelVersion,
   });
   console.log("My account:", account.address);
-
+  const paymasterClient = createZeroDevPaymasterClient({
+    chain,
+    transport: http(process.env.PAYMASTER_RPC),
+  });
   return createKernelAccountClient({
     account,
-    entryPoint: entryPointAddress,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: async ({ userOperation }) => {
-        const paymasterClient = createZeroDevPaymasterClient({
-          chain,
-          transport: http(process.env.PAYMASTER_RPC),
-          entryPoint: entryPointAddress,
-        });
-        const _userOperation =
-          userOperation as SponsorUserOperationParameters<entryPoint>["userOperation"];
-        return paymasterClient.sponsorUserOperation({
-          userOperation: _userOperation,
-          entryPoint: entryPointAddress,
-        });
-      },
-    },
+    paymaster: paymasterClient,
   });
 };
 
@@ -91,40 +79,39 @@ export const getKernelV1Account = async () => {
 
   const publicClient = createPublicClient({
     transport: http(rpcUrl),
-    chain
+    chain,
   });
   const signer = privateKeyToAccount(privateKey);
 
   return createKernelAccountV1(publicClient, {
     signer,
     index: BigInt(0),
-    entryPoint: ENTRYPOINT_ADDRESS_V06,
-  }) as unknown as KernelSmartAccount<
-    ENTRYPOINT_ADDRESS_V06_TYPE,
-    Transport,
-    typeof chain
-  >;
+    entryPoint: getEntryPoint("0.6"),
+  });
 };
 
 export const getKernelV1AccountClient = async ({
   account,
-  middleware,
-}: Middleware<ENTRYPOINT_ADDRESS_V06_TYPE> & {
-  account: KernelSmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE, Transport, typeof chain>
+  paymaster,
+}: {
+  paymaster?: {
+    /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+    getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined;
+    /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+    getPaymasterStubData?: PaymasterActions["getPaymasterStubData"] | undefined;
+  };
+  account: SmartAccount<KernelSmartAccountV1Implementation>;
 }) => {
   const zeroDevBundlerRpcHost = process.env.BUNDLER_RPC;
   return createKernelAccountClient({
     account,
     chain,
     bundlerTransport: http(zeroDevBundlerRpcHost),
-    middleware,
-    entryPoint: ENTRYPOINT_ADDRESS_V06,
-  })
+    paymaster,
+  });
 };
 
-export const getZeroDevPaymasterClient = <entryPoint extends EntryPoint>(
-  entryPointAddress: entryPoint
-) => {
+export const getZeroDevPaymasterClient = () => {
   if (!process.env.PAYMASTER_RPC)
     throw new Error("PAYMASTER_RPC environment variable not set");
 
@@ -133,13 +120,10 @@ export const getZeroDevPaymasterClient = <entryPoint extends EntryPoint>(
   return createZeroDevPaymasterClient({
     chain,
     transport: http(paymasterRpc),
-    entryPoint: entryPointAddress,
   });
 };
 
-export const getZeroDevERC20PaymasterClient = <entryPoint extends EntryPoint>(
-  entryPointAddress: entryPoint
-) => {
+export const getZeroDevERC20PaymasterClient = () => {
   if (!process.env.ZERODEV_PROJECT_ID)
     throw new Error("ZERODEV_PROJECT_ID environment variable not set");
 
@@ -150,6 +134,5 @@ export const getZeroDevERC20PaymasterClient = <entryPoint extends EntryPoint>(
         "https://rpc.zerodev.app/api/v2/paymaster/" +
           process.env.ZERODEV_PROJECT_ID
     ),
-    entryPoint: entryPointAddress,
   });
 };

@@ -1,11 +1,10 @@
 import "dotenv/config"
 import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator'
 import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient, createFallbackKernelAccountClient } from '@zerodev/sdk'
-import { ENTRYPOINT_ADDRESS_V07 } from 'permissionless'
 import { Hex, createPublicClient, http, zeroAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 const zeroDevProjectId = process.env.ZERODEV_PROJECT_ID
 const privateKey = process.env.PRIVATE_KEY
@@ -19,7 +18,7 @@ const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
   chain
 })
-const entryPoint = ENTRYPOINT_ADDRESS_V07
+const entryPoint = getEntryPoint("0.7")
 
 async function main() {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
@@ -36,49 +35,41 @@ async function main() {
     kernelVersion: KERNEL_V3_1
   })
 
+  const pimlicoPaymasterClient = createZeroDevPaymasterClient({
+    chain,
+    transport: http(process.env.PAYMASTER_RPC + '?provider=PIMLICO'),
+  })
+
   const pimlicoKernelClient = createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(process.env.BUNDLER_RPC + '?provider=PIMLICO'),
-    middleware: {
-      sponsorUserOperation: async ({ userOperation }) => {
-        const pimlicoPaymasterClient = createZeroDevPaymasterClient({
-          chain,
-          transport: http(process.env.PAYMASTER_RPC + '?provider=PIMLICO'),
-          entryPoint
-        })
-        return pimlicoPaymasterClient.sponsorUserOperation({
-          userOperation,
-          entryPoint,
-        })
-      }
+    bundlerTransport: http(process.env.BUNDLER_RPC + "_make_it_fail" + '?provider=PIMLICO'),
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return pimlicoPaymasterClient.sponsorUserOperation({ userOperation });
+      },
     },
-    entryPoint
   })
 
-  const stackupKernelClient = createKernelAccountClient({
+  const alchemyPaymasterClient = createZeroDevPaymasterClient({
+    chain,
+    transport: http(process.env.PAYMASTER_RPC + '?provider=ALCHEMY'),
+  })
+
+  const alchemyKernelClient = createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(process.env.BUNDLER_RPC + '?provider=STACKUP'),
-    middleware: {
-      sponsorUserOperation: async ({ userOperation }) => {
-        const stackupPaymasterClient = createZeroDevPaymasterClient({
-          chain,
-          transport: http(process.env.PAYMASTER_RPC + '?provider=STACKUP'),
-          entryPoint
-        })
-        return stackupPaymasterClient.sponsorUserOperation({
-          userOperation,
-          entryPoint,
-        })
-      }
+    bundlerTransport: http(process.env.BUNDLER_RPC + '?provider=ALCHEMY'),
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return alchemyPaymasterClient.sponsorUserOperation({ userOperation });
+      },
     },
-    entryPoint
   })
 
   const fallbackKernelClient = createFallbackKernelAccountClient([
     pimlicoKernelClient,
-    stackupKernelClient
+    alchemyKernelClient
   ])
 
   console.log("Account address:", fallbackKernelClient.account.address)

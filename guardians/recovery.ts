@@ -4,7 +4,6 @@ import {
   createZeroDevPaymasterClient,
   createKernelAccountClient,
 } from "@zerodev/sdk";
-import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless";
 import {
   http,
   createPublicClient,
@@ -24,7 +23,7 @@ import {
   getValidatorAddress,
   signerToEcdsaValidator,
 } from "@zerodev/ecdsa-validator";
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -36,21 +35,21 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
-  chain: sepolia
+  chain: sepolia,
 });
 
 const oldSigner = privateKeyToAccount(generatePrivateKey());
 const newSigner = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const guardian = privateKeyToAccount(generatePrivateKey());
 
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
+const entryPoint = getEntryPoint("0.7");
 const recoveryExecutorFunction =
   "function doRecovery(address _validator, bytes calldata _data)";
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer: oldSigner,
     entryPoint,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const guardianValidator = await createWeightedECDSAValidator(publicClient, {
@@ -60,7 +59,7 @@ const main = async () => {
       signers: [{ address: guardian.address, weight: 100 }],
     },
     signers: [guardian],
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const account = await createKernelAccount(publicClient, {
@@ -68,42 +67,39 @@ const main = async () => {
     plugins: {
       sudo: ecdsaValidator,
       regular: guardianValidator,
-      action: getRecoveryAction(entryPoint),
+      action: getRecoveryAction(entryPoint.version),
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain: sepolia,
     transport: http(process.env.PAYMASTER_RPC),
-    entryPoint,
   });
 
   const kernelClient = createKernelAccountClient({
     account,
     chain: sepolia,
-    entryPoint,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: paymasterClient.sponsorUserOperation,
+    paymaster: {
+      getPaymasterData(userOperation) {
+        return paymasterClient.sponsorUserOperation({ userOperation });
+      },
     },
   });
 
   console.log("performing recovery...");
   const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: encodeFunctionData({
-        abi: parseAbi([recoveryExecutorFunction]),
-        functionName: "doRecovery",
-        args: [getValidatorAddress(entryPoint, KERNEL_V3_1), newSigner.address],
-      }),
-    },
+    callData: encodeFunctionData({
+      abi: parseAbi([recoveryExecutorFunction]),
+      functionName: "doRecovery",
+      args: [getValidatorAddress(entryPoint, KERNEL_V3_1), newSigner.address],
+    }),
   });
 
   console.log("recovery userOp hash:", userOpHash);
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint));
-  await bundlerClient.waitForUserOperationReceipt({
+  await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
 
@@ -112,41 +108,38 @@ const main = async () => {
   const newEcdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer: newSigner,
     entryPoint,
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const newAccount = await createKernelAccount(publicClient, {
-    deployedAccountAddress: account.address,
+    address: account.address,
     entryPoint,
     plugins: {
       sudo: newEcdsaValidator,
     },
-    kernelVersion: KERNEL_V3_1
+    kernelVersion: KERNEL_V3_1,
   });
 
   const newKernelClient = createKernelAccountClient({
-    entryPoint,
     account: newAccount,
     chain: sepolia,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: paymasterClient.sponsorUserOperation,
-    },
+    paymaster: paymasterClient,
   });
 
   console.log("sending userOp with new signer");
   const userOpHash2 = await newKernelClient.sendUserOperation({
-    userOperation: {
-      callData: await newAccount.encodeCallData({
+    callData: await newAccount.encodeCalls([
+      {
         to: zeroAddress,
         value: BigInt(0),
         data: "0x",
-      }),
-    },
+      },
+    ]),
   });
   console.log("userOp hash:", userOpHash2);
 
-  await bundlerClient.waitForUserOperationReceipt({
+  await newKernelClient.waitForUserOperationReceipt({
     hash: userOpHash2,
   });
   console.log("userOp completed!");

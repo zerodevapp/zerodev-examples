@@ -5,15 +5,20 @@ import {
   createKernelAccountClient,
   getERC20PaymasterApproveCall,
   gasTokenAddresses,
-  ZeroDevPaymasterClient,
-} from "@zerodev/sdk"
-import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { ENTRYPOINT_ADDRESS_V07, UserOperation, bundlerActions } from "permissionless"
-import { http, Hex, createPublicClient, zeroAddress, encodeFunctionData, parseAbi, parseEther } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
-import { EntryPoint } from "permissionless/types/entrypoint"
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
+} from "@zerodev/sdk";
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+import {
+  http,
+  Hex,
+  createPublicClient,
+  zeroAddress,
+  encodeFunctionData,
+  parseAbi,
+  parseEther,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -22,10 +27,10 @@ if (
 ) {
   throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set");
 }
-const chain = sepolia
+const chain = sepolia;
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
-  chain
+  chain,
 });
 
 const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
@@ -33,45 +38,35 @@ const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const TEST_ERC20_ABI = parseAbi([
   "function mint(address to, uint256 amount) external",
 ]);
-const entryPoint = ENTRYPOINT_ADDRESS_V07;
-
-
+const entryPoint = getEntryPoint("0.7");
 
 const main = async () => {
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
     signer,
-    kernelVersion: KERNEL_V3_1
-  })
+    kernelVersion: KERNEL_V3_1,
+  });
 
   const account = await createKernelAccount(publicClient, {
     entryPoint,
     plugins: {
       sudo: ecdsaValidator,
     },
-    kernelVersion: KERNEL_V3_1
-  })
+    kernelVersion: KERNEL_V3_1,
+  });
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain,
-    entryPoint,
     transport: http(process.env.PAYMASTER_RPC),
   });
 
-  const SEPOLIA_USDC_ADDRESS = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
   const kernelClient = createKernelAccountClient({
-    entryPoint,
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    middleware: {
-      sponsorUserOperation: async ({ userOperation }) => {
-        return paymasterClient.sponsorUserOperation({
-          userOperation,
-          entryPoint,
-          gasToken: SEPOLIA_USDC_ADDRESS,
-        })
-      },
+    paymaster: paymasterClient,
+    paymasterContext: {
+      token: gasTokenAddresses[sepolia.id]["USDC"],
     },
   });
 
@@ -86,30 +81,33 @@ const main = async () => {
 
   // You can get testnet USDC from https://faucet.circle.com/
   const userOpHash = await kernelClient.sendUserOperation({
-    userOperation: {
-      callData: await account.encodeCallData([
-        await getERC20PaymasterApproveCall(paymasterClient as ZeroDevPaymasterClient<EntryPoint>, {
-          gasToken: SEPOLIA_USDC_ADDRESS,
-          approveAmount: parseEther('1'),
-          entryPoint
-        }),
-        {
-          to: zeroAddress,
-          value: BigInt(0),
-          data: "0x",
-        },
-      ]),
-    },
+    callData: await account.encodeCalls([
+      await getERC20PaymasterApproveCall(paymasterClient, {
+        gasToken: gasTokenAddresses[sepolia.id]["USDC"],
+        approveAmount: parseEther("1"),
+        entryPoint,
+      }),
+
+      await getERC20PaymasterApproveCall(paymasterClient, {
+        gasToken: gasTokenAddresses[chain.id]["USDC"],
+        approveAmount: parseEther("1"),
+        entryPoint,
+      }),
+      {
+        to: zeroAddress,
+        value: BigInt(0),
+        data: "0x",
+      },
+    ]),
   });
 
   console.log("UserOp hash:", userOpHash);
 
-  const bundlerClient = kernelClient.extend(bundlerActions(entryPoint))
-  await bundlerClient.waitForUserOperationReceipt({
+  const receipt = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
 
-  console.log("UserOp completed");
+  console.log("UserOp completed", receipt.receipt.transactionHash);
 };
 
 main();
