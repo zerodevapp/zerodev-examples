@@ -1,8 +1,6 @@
 import dotenv from "dotenv"
 import {
-    sendUserOperations,
-    SendUserOperationsParameters,
-    signUserOperations,
+    prepareAndSignUserOperations,
     toMultiChainECDSAValidator
 } from "@zerodev/multi-chain-ecdsa-validator"
 import {
@@ -180,12 +178,17 @@ const main = async () => {
         }
     ]
 
-    const userOpHashes = await sendUserOperations(clients, userOpParams)
-    const sepoliaUserOpHash = userOpHashes[0]
-    const optimismSepoliaUserOpHash = userOpHashes[1]
+    // prepare and sign user operations with multi-chain ecdsa validator
+    const signedUserOps = await prepareAndSignUserOperations(
+        clients,
+        userOpParams
+    )
+    const sepoliaUserOp = signedUserOps[0]
+    const optimismSepoliaUserOp = signedUserOps[1]
 
     console.log("sending sepoliaUserOp")
-    // you should use bundler client to send signed user ops
+    const sepoliaUserOpHash =
+        await sepoliaZerodevKernelClient.sendUserOperation(sepoliaUserOp)
 
     console.log("sepoliaUserOpHash", sepoliaUserOpHash)
     await sepoliaZerodevKernelClient.waitForUserOperationReceipt({
@@ -193,6 +196,10 @@ const main = async () => {
     })
 
     console.log("sending optimismSepoliaUserOp")
+    const optimismSepoliaUserOpHash =
+        await optimismSepoliaZerodevKernelClient.sendUserOperation(
+            optimismSepoliaUserOp
+        )
 
     console.log("optimismSepoliaUserOpHash", optimismSepoliaUserOpHash)
     await optimismSepoliaZerodevKernelClient.waitForUserOperationReceipt({

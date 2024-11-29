@@ -225,7 +225,7 @@ const main = async () => {
     },
   });
 
-  // send user ops. you don't need additional enables like `signUserOpsWithEnable`, since it already has the approvals with serialized account
+  // send user ops. you don't need additional enables like `prepareAndSignUserOperations`, since it already has the approvals with serialized account
   const sepoliaTxHash = await sepoliaZerodevKernelClient.sendTransaction({
     to: zeroAddress,
     value: BigInt(0),
