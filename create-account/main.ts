@@ -3,6 +3,7 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
   createKernelAccountClient,
+  getUserOperationGasPrice,
 } from "@zerodev/sdk";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { http, Hex, createPublicClient, zeroAddress, Address } from "viem";
@@ -59,7 +60,13 @@ const main = async () => {
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
+    client: publicClient,
     paymaster: paymasterClient,
+    userOperation: {
+      estimateFeesPerGas: async ({ bundlerClient }) => {
+        return getUserOperationGasPrice(bundlerClient);
+      },
+    },
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
