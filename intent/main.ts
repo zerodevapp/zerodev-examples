@@ -85,7 +85,7 @@ async function main() {
     if (balance >= parseUnits('0.7', 6)) {
       break;
     }
-    console.log(`Insufficient USDC balance: ${formatUnits(balance, 6)}. Please deposit at least 0.6 USDC.`)
+    console.log(`Insufficient USDC balance: ${formatUnits(balance, 6)}. Please deposit at least 0.7 USDC.`)
   }
 
   // send the intent
@@ -113,7 +113,7 @@ async function main() {
       {
         chainId: base.id,
         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on base
-        amount: parseUnits('0.6', 6), // 0.59 USDC
+        amount: parseUnits('0.6', 6), // 0.6 USDC
       },
     ],
   });
