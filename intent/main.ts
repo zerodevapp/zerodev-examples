@@ -82,7 +82,7 @@ async function main() {
       functionName: 'balanceOf',
       args: [intentClient.account.address],
     });
-    if (balance >= parseUnits('0.6', 6)) {
+    if (balance >= parseUnits('0.7', 6)) {
       break;
     }
     console.log(`Insufficient USDC balance: ${formatUnits(balance, 6)}. Please deposit at least 0.6 USDC.`)
@@ -99,7 +99,7 @@ async function main() {
         data: encodeFunctionData({
           abi: erc20Abi,
           functionName: 'transfer',
-          args: [account.address, parseUnits('0.59', 6)],
+          args: [account.address, parseUnits('0.6', 6)],
         }),
       },
     ],
@@ -113,7 +113,7 @@ async function main() {
       {
         chainId: base.id,
         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on base
-        amount: parseUnits('0.59', 6), // 0.59 USDC
+        amount: parseUnits('0.6', 6), // 0.59 USDC
       },
     ],
   });
