@@ -1,13 +1,22 @@
-import { KERNEL_V3_2, getEntryPoint } from '@zerodev/sdk/constants';
-import { signerToEcdsaValidator } from '@zerodev/ecdsa-validator';
-import { formatUnits, erc20Abi, parseUnits, type Hex, type Chain, createPublicClient, http, encodeFunctionData, concatHex, zeroAddress, encodePacked, encodeAbiParameters, parseAbiParameters } from 'viem';
-import { KernelV3_1AccountAbi, createKernelAccount } from '@zerodev/sdk';
-import { privateKeyToAccount } from 'viem/accounts';
-import { INTENT_EXECUTOR, createIntentClient } from '@zerodev/intent';
-import { arbitrum, base } from 'viem/chains';
+import { KERNEL_V3_2, getEntryPoint } from "@zerodev/sdk/constants";
+import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+import {
+  formatUnits,
+  erc20Abi,
+  parseUnits,
+  type Hex,
+  type Chain,
+  createPublicClient,
+  http,
+  encodeFunctionData,
+} from "viem";
+import { createKernelAccount } from "@zerodev/sdk";
+import { privateKeyToAccount } from "viem/accounts";
+import { createIntentClient, installIntentExecutor } from "@zerodev/intent";
+import { arbitrum, base } from "viem/chains";
 
 if (!process.env.PRIVATE_KEY) {
-  throw new Error("PRIVATE_KEY is not set")
+  throw new Error("PRIVATE_KEY is not set");
 }
 
 const timeout = 100_000;
@@ -23,31 +32,23 @@ const publicClient = createPublicClient({
 });
 
 const waitForUserInput = async () => {
-  return new Promise<void>(resolve => {
-    process.stdin.once('data', () => {
-      resolve()
-    })
-  })
-}
+  return new Promise<void>((resolve) => {
+    process.stdin.once("data", () => {
+      resolve();
+    });
+  });
+};
 
 async function createIntentClinet(chain: Chain) {
   // set kernel and entryPoint version
-  const entryPoint = getEntryPoint('0.7');
+  const entryPoint = getEntryPoint("0.7");
   const kernelVersion = KERNEL_V3_2;
-
 
   // create ecdsa validator
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     signer: account,
     kernelVersion,
     entryPoint,
-  });
-
-  // install intentExecutor module
-  const installModuleData = encodeFunctionData({
-    abi: KernelV3_1AccountAbi,
-    functionName: 'installModule',
-    args: [BigInt(2), INTENT_EXECUTOR, concatHex([zeroAddress, encodeAbiParameters(parseAbiParameters(["bytes", "bytes"]), ["0x", "0x"])])],
   });
 
   //
@@ -57,8 +58,7 @@ async function createIntentClinet(chain: Chain) {
     },
     kernelVersion,
     entryPoint,
-    initConfig: [installModuleData],
-    useReplayableSignature: true,
+    initConfig: [installIntentExecutor],
   });
 
   // the cabclient can be used to send normal userOp and cross-chain cab tx
@@ -72,48 +72,55 @@ async function createIntentClinet(chain: Chain) {
 
 async function main() {
   const intentClient = await createIntentClinet(chain);
-  
+
   while (true) {
-    console.log(`Please deposit USDC to ${intentClient.account.address} on Arbitrum.`)
-    await waitForUserInput()
+    console.log(
+      `Please deposit USDC to ${intentClient.account.address} on Arbitrum.`
+    );
+    await waitForUserInput();
     const balance = await publicClient.readContract({
-      address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
       abi: erc20Abi,
-      functionName: 'balanceOf',
+      functionName: "balanceOf",
       args: [intentClient.account.address],
     });
-    if (balance >= parseUnits('0.7', 6)) {
+    if (balance >= parseUnits("0.7", 6)) {
       break;
     }
-    console.log(`Insufficient USDC balance: ${formatUnits(balance, 6)}. Please deposit at least 0.7 USDC.`)
+    console.log(
+      `Insufficient USDC balance: ${formatUnits(
+        balance,
+        6
+      )}. Please deposit at least 0.7 USDC.`
+    );
   }
 
   // send the intent
-  console.log('start sending UserIntent');
+  console.log("start sending UserIntent");
   const result = await intentClient.sendUserIntent({
     calls: [
       {
-        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        to: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         value: BigInt(0),
         // send output amount to eoa address
         data: encodeFunctionData({
           abi: erc20Abi,
-          functionName: 'transfer',
-          args: [account.address, parseUnits('0.6', 6)],
+          functionName: "transfer",
+          args: [account.address, parseUnits("0.6", 6)],
         }),
       },
     ],
     inputTokens: [
       {
         chainId: chain.id,
-        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC on arb
+        address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // USDC on arb
       },
     ],
     outputTokens: [
       {
         chainId: base.id,
-        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on base
-        amount: parseUnits('0.6', 6), // 0.6 USDC
+        address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on base
+        amount: parseUnits("0.6", 6), // 0.6 USDC
       },
     ],
   });
@@ -122,6 +129,8 @@ async function main() {
   const receipt = await intentClient.waitForUserIntentExecutionReceipt({
     uiHash: result.uiHash,
   });
-  console.log(`txHash on destination chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt.transactionHash}`);
+  console.log(
+    `txHash on destination chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt.transactionHash}`
+  );
 }
 main();
