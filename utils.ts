@@ -9,6 +9,7 @@ import {
   createKernelAccountClient,
   createKernelAccountV1,
   createZeroDevPaymasterClient,
+  getUserOperationGasPrice,
 } from "@zerodev/sdk";
 import { getEntryPoint } from "@zerodev/sdk/constants";
 import { GetKernelVersion } from "@zerodev/sdk/types";
@@ -63,6 +64,12 @@ export const getKernelClient = async <
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
     paymaster: paymasterClient,
+    client: publicClient,
+    userOperation: {
+      estimateFeesPerGas: async ({ bundlerClient }) => {
+        return getUserOperationGasPrice(bundlerClient);
+      },
+    },
   });
 };
 
