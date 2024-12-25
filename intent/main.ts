@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { KERNEL_V3_2, getEntryPoint } from "@zerodev/sdk/constants";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import {

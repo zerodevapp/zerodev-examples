@@ -1,3 +1,4 @@
+import "dotenv/config";
 import {
   KERNEL_V3_0,
   KERNEL_V3_2,
@@ -61,6 +62,7 @@ async function createIntentClientV3_0(kernelAccount: SmartAccount) {
       chain,
       transport: http(paymasterRpc, { timeout }),
     }),
+    client: publicClient,
   });
 }
 
