@@ -13,7 +13,7 @@ import {
 } from "viem";
 import { createKernelAccount } from "@zerodev/sdk";
 import { privateKeyToAccount } from "viem/accounts";
-import { createIntentClient, installIntentExecutor } from "@zerodev/intent";
+import { createIntentClient, installIntentExecutor, INTENT_V0_1 } from "@zerodev/intent";
 import { arbitrum, base } from "viem/chains";
 
 if (!process.env.PRIVATE_KEY) {
@@ -59,7 +59,7 @@ async function createIntentClinet(chain: Chain) {
     },
     kernelVersion,
     entryPoint,
-    initConfig: [installIntentExecutor],
+    initConfig: [installIntentExecutor(INTENT_V0_1)],
   });
 
   // the cabclient can be used to send normal userOp and cross-chain cab tx
@@ -67,6 +67,7 @@ async function createIntentClinet(chain: Chain) {
     account: kernelAccount,
     chain,
     bundlerTransport: http(bundlerRpc, { timeout }),
+    version: INTENT_V0_1
   });
   return intentClient;
 }
