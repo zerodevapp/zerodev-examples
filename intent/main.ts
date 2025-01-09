@@ -79,12 +79,6 @@ async function createIntentClinet(chain: Chain) {
 async function main() {
   const intentClient = await createIntentClinet(chain);
 
-  const cab = await intentClient.getCAB({
-    networks: [arbitrum.id, base.id],
-    tokenTickers: ["USDC"],
-  });
-  console.log("cab", cab);
-
   while (true) {
     console.log(
       `Please deposit USDC to ${intentClient.account.address} on Arbitrum.`
@@ -106,6 +100,13 @@ async function main() {
       )}. Please deposit at least 0.7 USDC.`
     );
   }
+
+  // Get chain-abstracted balance
+  const cab = await intentClient.getCAB({
+    networks: [arbitrum.id, base.id],
+    tokenTickers: ["USDC"],
+  });
+  console.log("Chain abstracted balance (CAB):", cab);
 
   // send the intent
   console.log("start sending UserIntent");
