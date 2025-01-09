@@ -1,9 +1,6 @@
 import { KERNEL_V3_2, getEntryPoint } from "@zerodev/sdk/constants";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import {
-  formatUnits,
-  erc20Abi,
-  parseUnits,
   type Hex,
   type Chain,
   createPublicClient,
@@ -66,8 +63,7 @@ async function createIntentClinet(chain: Chain) {
     chain,
     bundlerTransport: http(bundlerRpc, { timeout }),
     version: INTENT_V0_2,
-    relayerTransport: http(`http://127.0.0.1:8080/${process.env.BASE_PROJECT_ID}`, { timeout }),
-    intentTransport: http('http://127.0.0.1:3000/intent', { timeout }),
+    relayerTransport: http(`https://relayer-d6ne.onrender.com/${process.env.BASE_PROJECT_ID}`, { timeout }),
   });
 
   return intentClient;
@@ -75,28 +71,6 @@ async function createIntentClinet(chain: Chain) {
 
 async function main() {
   const intentClient = await createIntentClinet(chain);
-
-  // while (true) {
-  //   console.log(
-  //     `Please deposit USDC to ${intentClient.account.address} on Arbitrum.`
-  //   );
-  //   await waitForUserInput();
-  //   const balance = await publicClient.readContract({
-  //     address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-  //     abi: erc20Abi,
-  //     functionName: "balanceOf",
-  //     args: [intentClient.account.address],
-  //   });
-  //   if (balance >= parseUnits("0.1", 6)) {
-  //     break;
-  //   }
-  //   console.log(
-  //     `Insufficient USDC balance: ${formatUnits(
-  //       balance,
-  //       6
-  //     )}. Please deposit at least 0.1 USDC.`
-  //   );
-  // }
 
   // send the intent
   console.log("start sending UserIntent");
@@ -108,10 +82,10 @@ async function main() {
         data: "0x",
       }, 
     ],
-    // gasToken: {
-    //   chainId: chain.id,
-    //   address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on arb
-    // },
+    gasToken: {
+      chainId: chain.id,
+      address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on arb
+    },
     chainId: chain.id,
   });
   console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);

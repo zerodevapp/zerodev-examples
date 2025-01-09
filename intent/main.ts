@@ -134,5 +134,6 @@ async function main() {
   console.log(
     `txHash on destination chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt.transactionHash}`
   );
+  process.exit(0);
 }
 main();
