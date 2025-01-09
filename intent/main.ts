@@ -13,7 +13,11 @@ import {
 } from "viem";
 import { createKernelAccount } from "@zerodev/sdk";
 import { privateKeyToAccount } from "viem/accounts";
-import { createIntentClient, installIntentExecutor, INTENT_V0_1 } from "@zerodev/intent";
+import {
+  createIntentClient,
+  installIntentExecutor,
+  INTENT_V0_1,
+} from "@zerodev/intent";
 import { arbitrum, base } from "viem/chains";
 
 if (!process.env.PRIVATE_KEY) {
@@ -67,13 +71,19 @@ async function createIntentClinet(chain: Chain) {
     account: kernelAccount,
     chain,
     bundlerTransport: http(bundlerRpc, { timeout }),
-    version: INTENT_V0_1
+    version: INTENT_V0_1,
   });
   return intentClient;
 }
 
 async function main() {
   const intentClient = await createIntentClinet(chain);
+
+  const cab = await intentClient.getCAB({
+    networks: [arbitrum.id, base.id],
+    tokenTickers: ["USDC"],
+  });
+  console.log("cab", cab);
 
   while (true) {
     console.log(
