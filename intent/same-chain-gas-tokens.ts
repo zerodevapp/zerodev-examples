@@ -106,10 +106,12 @@ async function main() {
         data: "0x",
       }, 
     ],
-    gasToken: {
-      chainId: chain.id,
-      address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on arb
-    },
+    gasTokens: [
+      {
+        chainId: chain.id,
+        address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on arb
+      },
+    ],
     chainId: chain.id,
   });
   console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
