@@ -1,3 +1,4 @@
+import "dotenv/config";
 import {
   KERNEL_V3_0,
   KERNEL_V3_2,
@@ -10,7 +11,7 @@ import {
   createZeroDevPaymasterClient,
 } from "@zerodev/sdk";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createIntentClient } from "@zerodev/intent";
+import { createIntentClient, INTENT_V0_1 } from "@zerodev/intent";
 import { arbitrum, sepolia } from "viem/chains";
 import { SmartAccount } from "viem/account-abstraction";
 
@@ -61,6 +62,8 @@ async function createIntentClientV3_0(kernelAccount: SmartAccount) {
       chain,
       transport: http(paymasterRpc, { timeout }),
     }),
+    client: publicClient,
+    version: INTENT_V0_1
   });
 }
 
@@ -89,6 +92,7 @@ async function createIntentClientV3_2(kernelAccount: any) {
     account: kernelAccount,
     chain,
     bundlerTransport: http(bundlerRpc, { timeout }),
+    version: INTENT_V0_1
   });
 }
 
