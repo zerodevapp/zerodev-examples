@@ -15,7 +15,7 @@ const main = async () => {
     // We use the Odyssey testnet here, but you can use any network that
     // supports EIP-7702.
     chain: odysseyTestnet,
-    transport: http(),
+    transport: http('https://odyssey.ithaca.xyz'),
   }).extend(eip7702Actions()).extend(publicActions)
 
   console.log('EOA address:', walletClient.account.address)
