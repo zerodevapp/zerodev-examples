@@ -36,7 +36,7 @@ const waitForUserInput = async () => {
   });
 };
 
-async function createIntentClinet(chain: Chain) {
+async function createIntentClientHelper(chain: Chain) {
   // set kernel and entryPoint version
   const entryPoint = getEntryPoint("0.7");
   const kernelVersion = KERNEL_V3_2;
@@ -70,7 +70,7 @@ async function createIntentClinet(chain: Chain) {
 }
 
 async function main() {
-  const intentClient = await createIntentClinet(chain);
+  const intentClient = await createIntentClientHelper(chain);
 
   // send the intent
   console.log("start sending UserIntent");
