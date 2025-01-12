@@ -52,11 +52,3 @@ const account = await createKernelAccount(publicClient, {
   address: '<EOA address>',
 })
 ```
-
-Check out a [complete example](./send-op.ts) of sending a batched UserOp with your EOA.  If you had set up a gas sponsorship policy earlier, the UserOp will be sponsored as well.
-
-Run the example with:
-
-```bash
-npx ts-node ./7702/send-op.ts
-```

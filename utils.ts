@@ -15,7 +15,7 @@ import { getEntryPoint } from "@zerodev/sdk/constants";
 import { GetKernelVersion } from "@zerodev/sdk/types";
 import { Chain, Hex, Transport, createPublicClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { polygonMumbai, sepolia } from "viem/chains";
+import { odysseyTestnet, polygonMumbai, sepolia } from "viem/chains";
 import {
   EntryPointVersion,
   PaymasterActions,
@@ -29,7 +29,7 @@ if (!zeroDevProjectId || !privateKey) {
 }
 
 const signer = privateKeyToAccount(privateKey as Hex);
-const chain = sepolia;
+const chain = odysseyTestnet;
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
   chain,
@@ -53,6 +53,7 @@ export const getKernelClient = async <
     },
     entryPoint: getEntryPoint(entryPointVersion_),
     kernelVersion,
+    address: signer.address,
   });
   console.log("My account:", account.address);
   const paymasterClient = createZeroDevPaymasterClient({
@@ -138,8 +139,8 @@ export const getZeroDevERC20PaymasterClient = () => {
     chain,
     transport: http(
       process.env.PAYMASTER_RPC ||
-        "https://rpc.zerodev.app/api/v2/paymaster/" +
-          process.env.ZERODEV_PROJECT_ID
+      "https://rpc.zerodev.app/api/v2/paymaster/" +
+      process.env.ZERODEV_PROJECT_ID
     ),
   });
 };
