@@ -12,7 +12,7 @@
     "@zerodev/sdk": "^5.4.6",
     "@zerodev/session-key": "^5.5.0",
     "@zerodev/weighted-ecdsa-validator": "^5.4.0",
-    "viem": "^2.21.55"
+    "viem": "^2.22.6"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
