@@ -38,7 +38,7 @@ const main = async () => {
   const authorization = await signAuthorization(sponsorWallet, {
     account,
     contractAddress: KERNEL_DELEGATION_ADDRESS,
-    delegate: sponsorWallet.account.address,
+    delegate: true,
   })
 
   const hash = await writeContract(sponsorWallet, {
