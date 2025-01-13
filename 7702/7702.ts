@@ -73,7 +73,7 @@ const main = async () => {
       },
     },
     // Set the 7702 authorization
-    eip7702Auth: authorization,
+    eip7702auth: authorization,
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
