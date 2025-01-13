@@ -66,7 +66,7 @@ const main = async () => {
         signer: ecdsaSigner,
         policies: [
           toCallPolicy({
-            policyVersion: CallPolicyVersion.V0_0_2,
+            policyVersion: CallPolicyVersion.V0_0_4,
             permissions: [
               {
                 abi: TEST_ERC20Abi,
