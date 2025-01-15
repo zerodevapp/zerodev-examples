@@ -29,7 +29,7 @@ Follow these steps to get this project up and running on your local machine:
     cp .env.example .env
     ```
 
-   You can find your bundler & paymaster URLs on [the ZeroDev dashboard](https://dashboard.zerodev.app/).  The examples use ETH Sepolia, so make sure to create a ZeroDev project for ETH Sepolia.  If you want to run the examples on another network, make sure to update the `chain` object in the code.
+   You can find your bundler & paymaster URLs on [the ZeroDev dashboard](https://dashboard.zerodev.app/).  The examples use ETH Sepolia, so make sure to create a ZeroDev project for ETH Sepolia.  If you want to run the examples on another network, make sure to update the `chain` object in the code (some examples use the chain object in [./utils.ts](./utils.ts) so you'd need to update it there).
 
 4. **Run the script**
 

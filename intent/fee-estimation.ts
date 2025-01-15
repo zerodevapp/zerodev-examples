@@ -6,37 +6,32 @@ import {
   createPublicClient,
   http,
   zeroAddress,
+  parseUnits,
+  erc20Abi,
 } from "viem";
 import { createKernelAccount } from "@zerodev/sdk";
 import { privateKeyToAccount } from "viem/accounts";
-import { createIntentClient, installIntentExecutor, INTENT_V0_2 } from "@zerodev/intent";
-import { base } from "viem/chains";
+import { createIntentClient, installIntentExecutor, INTENT_V0_1 } from "@zerodev/intent";
+import { base, optimism } from "viem/chains";
 
-if (!process.env.PRIVATE_KEY || !process.env.BASE_PROJECT_ID) {
-  throw new Error("PRIVATE_KEY or BASE_PROJECT_ID is not set");
+if (!process.env.PRIVATE_KEY) {
+  throw new Error("PRIVATE_KEY is not set");
 }
 
 const timeout = 100_000;
 const privateKey = process.env.PRIVATE_KEY as Hex;
 const account = privateKeyToAccount(privateKey);
 
-const chain = base;
+const intentVersion =INTENT_V0_1;
+
 const bundlerRpc = process.env.BUNDLER_RPC as string;
 
 const publicClient = createPublicClient({
-  chain,
+  chain: optimism,
   transport: http(),
 });
 
-const waitForUserInput = async () => {
-  return new Promise<void>((resolve) => {
-    process.stdin.once("data", () => {
-      resolve();
-    });
-  });
-};
-
-async function createIntentClientHelper(chain: Chain) {
+async function createIntentClinet(chain: Chain) {
   // set kernel and entryPoint version
   const entryPoint = getEntryPoint("0.7");
   const kernelVersion = KERNEL_V3_2;
@@ -54,7 +49,7 @@ async function createIntentClientHelper(chain: Chain) {
     },
     kernelVersion,
     entryPoint,
-    initConfig: [installIntentExecutor(INTENT_V0_2)],
+    initConfig: [installIntentExecutor(intentVersion)],
   });
 
   // the cabclient can be used to send normal userOp and cross-chain cab tx
@@ -62,36 +57,54 @@ async function createIntentClientHelper(chain: Chain) {
     account: kernelAccount,
     chain,
     bundlerTransport: http(bundlerRpc, { timeout }),
-    version: INTENT_V0_2,
-    relayerTransport: http(`https://relayer-d6ne.onrender.com/${process.env.BASE_PROJECT_ID}`, { timeout }),
+    version: intentVersion,
   });
 
   return intentClient;
 }
 
 async function main() {
-  const intentClient = await createIntentClientHelper(chain);
+  const intentClient = await createIntentClinet(optimism);
+  console.log('account', intentClient.account.address);
 
-  // send the intent
-  console.log("start sending UserIntent");
-  const result = await intentClient.sendUserIntent({
+  const balance = await publicClient.readContract({
+    address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: [intentClient.account.address]
+  })
+  console.log('balance', balance);
+
+  const result = await intentClient.estimateUserIntentFees({
     calls: [
       {
         to: zeroAddress,
         value: BigInt(0),
-        data: "0x",
-      }, 
+        data: '0x'
+      }
     ],
-    chainId: chain.id,
+    inputTokens: [
+      {
+        chainId: optimism.id,
+        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+      },
+    ],
+    outputTokens: [
+      {
+        chainId: base.id,
+        address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on base
+        amount: parseUnits("100", 6), // 100 USDC
+      },
+    ],
+    gasTokens: [
+      {
+        chainId: optimism.id,
+        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+      },
+    ],
   });
-  console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
+  console.log('Intent fee estimation', result);
 
-  const receipt = await intentClient.waitForUserIntentExecutionReceipt({
-    uiHash: result.uiHash,
-  });
-  console.log(
-    `txHash on destination chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt.transactionHash}`
-  );
   process.exit(0);
 }
 main();
