@@ -136,6 +136,12 @@ async function main() {
         amount: parseUnits("0.6", 6), // 0.6 USDC
       },
     ],
+    gasTokens: [
+      {
+        chainId: chain.id,
+        address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // USDC on arb
+      },
+    ]
   });
   console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
 
