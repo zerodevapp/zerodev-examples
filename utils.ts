@@ -2,20 +2,17 @@
 
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import {
-  KernelAccountClient,
-  KernelSmartAccountV1Implementation,
-  SponsorUserOperationParameters,
-  createKernelAccount,
+  KernelSmartAccountV1Implementation, createKernelAccount,
   createKernelAccountClient,
   createKernelAccountV1,
   createZeroDevPaymasterClient,
-  getUserOperationGasPrice,
+  getUserOperationGasPrice
 } from "@zerodev/sdk";
 import { getEntryPoint } from "@zerodev/sdk/constants";
 import { GetKernelVersion } from "@zerodev/sdk/types";
-import { Chain, Hex, Transport, createPublicClient, http } from "viem";
+import { Hex, createPublicClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { odysseyTestnet, polygonMumbai, sepolia } from "viem/chains";
+import { baseSepolia } from "viem/chains";
 import {
   EntryPointVersion,
   PaymasterActions,
@@ -29,7 +26,7 @@ if (!zeroDevProjectId || !privateKey) {
 }
 
 const signer = privateKeyToAccount(privateKey as Hex);
-const chain = odysseyTestnet;
+const chain = baseSepolia;
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
   chain,
@@ -53,7 +50,6 @@ export const getKernelClient = async <
     },
     entryPoint: getEntryPoint(entryPointVersion_),
     kernelVersion,
-    address: signer.address,
   });
   console.log("My account:", account.address);
   const paymasterClient = createZeroDevPaymasterClient({

@@ -1,9 +1,8 @@
 import "dotenv/config";
 import { zeroAddress } from "viem";
 import { getKernelClient } from "../utils";
-import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
-const entryPoint = getEntryPoint("0.7");
 async function main() {
   const kernelClient = await getKernelClient("0.7", KERNEL_V3_1);
 
@@ -27,6 +26,8 @@ async function main() {
   });
 
   console.log("UserOp completed");
+
+  process.exit(0);
 }
 
 main();
