@@ -9,7 +9,7 @@
     "@zerodev/multi-chain-ecdsa-validator": "^5.4.2",
     "@zerodev/permissions": "^5.5.0",
     "@zerodev/remote-signer": "^5.3.0",
-    "@zerodev/sdk": "^5.4.14",
+    "@zerodev/sdk": "^5.4.18",
     "@zerodev/session-key": "^5.5.0",
     "@zerodev/weighted-ecdsa-validator": "^5.4.0",
     "viem": "^2.22.6"
