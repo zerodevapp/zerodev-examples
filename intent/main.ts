@@ -84,18 +84,16 @@ async function main() {
       `Please deposit USDC to ${intentClient.account.address} on Arbitrum.`
     );
     await waitForUserInput();
-    const balance = await publicClient.readContract({
-      address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [intentClient.account.address],
+    const cab = await intentClient.getCAB({
+      networks: [arbitrum.id, base.id],
+      tokenTickers: ["USDC"],
     });
-    if (balance >= parseUnits("0.7", 6)) {
+    if (BigInt(cab.tokens[0].amount) >= parseUnits("0.7", 6)) {
       break;
-    }
+    } 
     console.log(
       `Insufficient USDC balance: ${formatUnits(
-        balance,
+        BigInt(cab.tokens[0].amount),
         6
       )}. Please deposit at least 0.7 USDC.`
     );
@@ -122,13 +120,7 @@ async function main() {
           args: [account.address, parseUnits("0.6", 6)],
         }),
       },
-    ],
-    inputTokens: [
-      {
-        chainId: chain.id,
-        address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // USDC on arb
-      },
-    ],
+    ], 
     outputTokens: [
       {
         chainId: base.id,
@@ -136,12 +128,7 @@ async function main() {
         amount: parseUnits("0.6", 6), // 0.6 USDC
       },
     ],
-    gasTokens: [
-      {
-        chainId: chain.id,
-        address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // USDC on arb
-      },
-    ]
+    gasTokens: 'CAB'
   });
   console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
 
