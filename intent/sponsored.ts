@@ -132,7 +132,7 @@ async function main() {
         amount: parseUnits("0.6", 6), // 0.6 USDC
       },
     ],
-    gasTokens: 'SPONSORED' // Use sponsored gas - requires valid project ID
+    gasToken: 'SPONSORED' // Use sponsored gas - requires valid project ID
   });
   console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
 

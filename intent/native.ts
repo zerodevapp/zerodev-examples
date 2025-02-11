@@ -131,7 +131,7 @@ async function main() {
         amount: parseUnits("0.6", 6), // 0.6 USDC
       },
     ],
-    gasTokens: 'NATIVE' // Explicitly use native tokens (ETH) for gas payment
+    gasToken: 'NATIVE' // Explicitly use native tokens (ETH) for gas payment
   });
   console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
 
