@@ -35,18 +35,17 @@ Additionally, there are utilities for migration and fee estimation:
 ### Cross-chain Transfer Examples
 Each transfer example follows the same flow:
 1. Creates a kernel account with intent executor
-2. Waits for USDC deposit on Arbitrum
+2. Get the CAB balance
 3. Performs a cross-chain transfer to Base
-4. Waits for transaction confirmation
+4. Waits for intent confirmation
 
-Run any example:
 ```bash
 npx ts-node intent/main.ts # Default gas payment with USDC
 npx ts-node intent/native.ts # Gas payment with native tokens
 npx ts-node intent/sponsored.ts # Gas sponsored by developer
 ```
 
-### Migration and Utilities
+### Migration and Utilities Examples
 ```bash
 # Upgrade kernel and enable intent
 npx ts-node intent/enableIntent.ts
