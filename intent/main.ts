@@ -91,14 +91,14 @@ async function main() {
       networks: [arbitrum.id, base.id],
       tokenTickers: ["USDC"],
     });
-    if (BigInt(cab.tokens[0].amount) >= parseUnits("0.7", 6)) {
+    if (BigInt(cab.tokens[0].amount) >= parseUnits("0.1", 6)) {
       break;
     } 
     console.log(
       `Insufficient USDC balance: ${formatUnits(
         BigInt(cab.tokens[0].amount),
         6
-      )}. Please deposit at least 0.7 USDC.`
+      )}. Please deposit at least 0.1 USDC.`
     );
   }
 
@@ -120,7 +120,7 @@ async function main() {
         data: encodeFunctionData({
           abi: erc20Abi,
           functionName: "transfer",
-          args: [account.address, parseUnits("0.6", 6)],
+          args: [account.address, parseUnits("0.1", 6)],
         }),
       },
     ], 
@@ -128,7 +128,7 @@ async function main() {
       {
         chainId: base.id,
         address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on base
-        amount: parseUnits("0.6", 6), // 0.6 USDC
+        amount: parseUnits("0.1", 6),
       },
     ],
   });

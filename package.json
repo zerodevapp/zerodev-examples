@@ -5,7 +5,7 @@
   "dependencies": {
     "@zerodev/ecdsa-validator": "^5.4.3",
     "@zerodev/hooks": "^5.3.0",
-    "@zerodev/intent": "^0.0.17",
+    "@zerodev/intent": "^0.0.18",
     "@zerodev/multi-chain-ecdsa-validator": "^5.4.2",
     "@zerodev/permissions": "^5.5.0",
     "@zerodev/remote-signer": "^5.3.0",
