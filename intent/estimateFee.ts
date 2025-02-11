@@ -12,6 +12,9 @@ import { createKernelAccount } from "@zerodev/sdk";
 import { privateKeyToAccount } from "viem/accounts";
 import { createIntentClient, installIntentExecutor, INTENT_V0_3 } from "@zerodev/intent";
 import { base, optimism } from "viem/chains";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 if (!process.env.PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY is not set");

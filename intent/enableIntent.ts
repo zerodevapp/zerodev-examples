@@ -14,6 +14,9 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createIntentClient, INTENT_V0_3 } from "@zerodev/intent";
 import { arbitrum, sepolia } from "viem/chains";
 import { SmartAccount } from "viem/account-abstraction";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 if (!process.env.PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY is not set");

@@ -1,9 +1,9 @@
 # ZeroDev Intent
 ## Overview
 
-The examples show how to transfer USDC from Arbitrum to Base using three different gas payment approaches:
+The examples show how to use zerodev intent with three different gas payment approaches:
 
-1. `main.ts` - Default gas payment using USDC
+1. `main.ts` - Default gas payment using same tokens as inputTokens. 
 2. `native.ts` - Gas paid with native tokens (ETH)
 3. `sponsored.ts` - Gas sponsored by the developer
 
@@ -14,7 +14,7 @@ Additionally, there are utilities for migration and fee estimation:
 - `migrateToIntentExecutor.ts` - Installs the intent executor for existing accounts
 
 ### Fee Estimation
-- `fee-estimation.ts` - Estimates transaction fees before sending an intent, helping users understand costs upfront
+- `estimateFee.ts` - Estimates transaction fees before sending an intent, helping users understand costs upfront
 
 ## Prerequisites
 
@@ -55,7 +55,7 @@ npx ts-node intent/enableIntent.ts
 npx ts-node intent/migrateToIntentExecutor.ts
 
 # Estimate fees for an intent
-npx ts-node intent/fee-estimation.ts
+npx ts-node intent/estimateFee.ts
 ```
 
 
