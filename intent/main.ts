@@ -16,9 +16,12 @@ import { privateKeyToAccount } from "viem/accounts";
 import {
   createIntentClient,
   installIntentExecutor,
-  INTENT_V0_1,
+  INTENT_V0_3,
 } from "@zerodev/intent";
 import { arbitrum, base } from "viem/chains";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 if (!process.env.PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY is not set");
@@ -56,14 +59,14 @@ async function createIntentClinet(chain: Chain) {
     entryPoint,
   });
 
-  //
+  // create a kernel account with intent executor plugin
   const kernelAccount = await createKernelAccount(publicClient, {
     plugins: {
       sudo: ecdsaValidator,
     },
     kernelVersion,
     entryPoint,
-    initConfig: [installIntentExecutor(INTENT_V0_1)],
+    initConfig: [installIntentExecutor(INTENT_V0_3)],
   });
 
   // the cabclient can be used to send normal userOp and cross-chain cab tx
@@ -71,7 +74,7 @@ async function createIntentClinet(chain: Chain) {
     account: kernelAccount,
     chain,
     bundlerTransport: http(bundlerRpc, { timeout }),
-    version: INTENT_V0_1,
+    version: INTENT_V0_3,
   });
   return intentClient;
 }
@@ -106,7 +109,7 @@ async function main() {
   });
   console.log("Chain abstracted balance (CAB):", cab);
 
-  // send the intent
+  // send the intent - using gasTokens as inputTokens if not specified
   console.log("start sending UserIntent");
   const result = await intentClient.sendUserIntent({
     calls: [
@@ -128,7 +131,6 @@ async function main() {
         amount: parseUnits("0.6", 6), // 0.6 USDC
       },
     ],
-    gasTokens: 'CAB'
   });
   console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
 

@@ -7,12 +7,14 @@ import {
   http,
   zeroAddress,
   parseUnits,
-  erc20Abi,
 } from "viem";
 import { createKernelAccount } from "@zerodev/sdk";
 import { privateKeyToAccount } from "viem/accounts";
-import { createIntentClient, installIntentExecutor, INTENT_V0_1 } from "@zerodev/intent";
+import { createIntentClient, installIntentExecutor, INTENT_V0_3 } from "@zerodev/intent";
 import { base, optimism } from "viem/chains";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 if (!process.env.PRIVATE_KEY) {
   throw new Error("PRIVATE_KEY is not set");
@@ -22,7 +24,7 @@ const timeout = 100_000;
 const privateKey = process.env.PRIVATE_KEY as Hex;
 const account = privateKeyToAccount(privateKey);
 
-const intentVersion =INTENT_V0_1;
+const intentVersion = INTENT_V0_3;
 
 const bundlerRpc = process.env.BUNDLER_RPC as string;
 
@@ -67,14 +69,6 @@ async function main() {
   const intentClient = await createIntentClinet(optimism);
   console.log('account', intentClient.account.address);
 
-  const balance = await publicClient.readContract({
-    address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: [intentClient.account.address]
-  })
-  console.log('balance', balance);
-
   const result = await intentClient.estimateUserIntentFees({
     calls: [
       {
@@ -83,23 +77,11 @@ async function main() {
         data: '0x'
       }
     ],
-    inputTokens: [
-      {
-        chainId: optimism.id,
-        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
-      },
-    ],
     outputTokens: [
       {
         chainId: base.id,
         address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on base
         amount: parseUnits("100", 6), // 100 USDC
-      },
-    ],
-    gasTokens: [
-      {
-        chainId: optimism.id,
-        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
       },
     ],
   });
