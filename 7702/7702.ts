@@ -6,13 +6,13 @@ import {
   http,
   zeroAddress,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { odysseyTestnet } from "viem/chains";
 import { eip7702Actions } from "viem/experimental";
 import {
   getEntryPoint,
-  KERNEL_V3_1,
-  KERNEL_7702_DELEGATION_ADDRESS,
+  KERNEL_V3_3_BETA,
+  KernelVersionToAddressesMap,
 } from "@zerodev/sdk/constants";
 import { createKernelAccountClient } from "@zerodev/sdk";
 import { getUserOperationGasPrice } from "@zerodev/sdk/actions";
@@ -24,10 +24,11 @@ const projectId = process.env.PROJECT_ID;
 const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`;
 const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`;
 const entryPoint = getEntryPoint("0.7");
-const kernelVersion = KERNEL_V3_1;
+const kernelVersion = KERNEL_V3_3_BETA;
+const chain = odysseyTestnet;
 const publicClient = createPublicClient({
   transport: http(bundlerRpc),
-  chain: odysseyTestnet,
+  chain,
 });
 
 const main = async () => {
@@ -35,7 +36,9 @@ const main = async () => {
     throw new Error("PRIVATE_KEY is required");
   }
 
-  const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
+  const signer = privateKeyToAccount(
+    generatePrivateKey() ?? (process.env.PRIVATE_KEY as Hex)
+  );
   console.log("EOA Address:", signer.address);
 
   const walletClient = createWalletClient({
@@ -44,12 +47,13 @@ const main = async () => {
 
     // We use the Odyssey testnet here, but you can use any network that
     // supports EIP-7702.
-    chain: odysseyTestnet,
+    chain,
     transport: http(),
   }).extend(eip7702Actions());
 
   const authorization = await walletClient.signAuthorization({
-    contractAddress: KERNEL_7702_DELEGATION_ADDRESS,
+    contractAddress:
+      KernelVersionToAddressesMap[kernelVersion].accountImplementationAddress,
     delegate: true,
   });
 
@@ -69,16 +73,20 @@ const main = async () => {
     address: signer.address,
     // Set the 7702 authorization
     eip7702Auth: authorization,
+    eip7702SponsorAccount: privateKeyToAccount(
+      // NOTE: Don't worry about this private key, it's just for testing
+      "0x688b84097239bc2bca41079d02fae599964a5844bc9e64f524206ad53a927bb9"
+    ),
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
-    chain: odysseyTestnet,
+    chain,
     transport: http(paymasterRpc),
   });
 
   const kernelClient = createKernelAccountClient({
     account,
-    chain: odysseyTestnet,
+    chain,
     bundlerTransport: http(bundlerRpc),
     paymaster: paymasterClient,
     client: publicClient,
@@ -107,7 +115,10 @@ const main = async () => {
   const { receipt } = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
-  console.log("UserOp completed", receipt.transactionHash);
+  console.log(
+    "UserOp completed",
+    `${chain.blockExplorers.default.url}/tx/${receipt.transactionHash}`
+  );
 };
 
 main();
