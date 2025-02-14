@@ -4,7 +4,7 @@ import {
   KERNEL_V3_2,
   getEntryPoint,
 } from "@zerodev/sdk/constants";
-import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-ecdsa-validator";
 import { Address, type Chain, createPublicClient, http, zeroAddress } from "viem";
 import {
   createKernelAccount,
@@ -41,7 +41,7 @@ async function getSigner() {
 async function createKernelWithV3_0() {
   const signer = await getSigner();
 
-  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+  const ecdsaValidator = await toMultiChainECDSAValidator(publicClient, {
     signer,
     kernelVersion: KERNEL_V3_0,
     entryPoint: getEntryPoint("0.7"),
@@ -73,7 +73,7 @@ async function createIntentClientV3_0(kernelAccount: SmartAccount) {
 async function createKernelWithV3_2(kernelAddress: Address) {
   const signer = await getSigner();
 
-  const v3_2Validator = await signerToEcdsaValidator(publicClient, {
+  const v3_2Validator = await toMultiChainECDSAValidator(publicClient, {
     signer,
     kernelVersion: KERNEL_V3_2,
     entryPoint: getEntryPoint("0.7"),
