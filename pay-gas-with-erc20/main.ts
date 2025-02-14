@@ -72,9 +72,6 @@ const main = async () => {
 
   console.log("My account:", account.address);
 
-  // In this example, just for convenience, we mint and approve the test
-  // tokens within the same batch, but you don't have to do that.
-  //
   // You just need to make sure that the account has enough ERC20 tokens
   // and that it has approved the paymaster with enough tokens to pay for
   // the gas.
@@ -82,12 +79,6 @@ const main = async () => {
   // You can get testnet USDC from https://faucet.circle.com/
   const userOpHash = await kernelClient.sendUserOperation({
     callData: await account.encodeCalls([
-      await getERC20PaymasterApproveCall(paymasterClient, {
-        gasToken: gasTokenAddresses[sepolia.id]["USDC"],
-        approveAmount: parseEther("1"),
-        entryPoint,
-      }),
-
       await getERC20PaymasterApproveCall(paymasterClient, {
         gasToken: gasTokenAddresses[chain.id]["USDC"],
         approveAmount: parseEther("1"),
