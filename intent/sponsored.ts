@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { KERNEL_V3_2, getEntryPoint } from "@zerodev/sdk/constants";
-import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-ecdsa-validator";
 import {
   formatUnits,
   erc20Abi,
@@ -53,7 +53,7 @@ async function createIntentClinet(chain: Chain) {
   const kernelVersion = KERNEL_V3_2;
 
   // create ecdsa validator
-  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+  const ecdsaValidator = await toMultiChainECDSAValidator(publicClient, {
     signer: account,
     kernelVersion,
     entryPoint,
@@ -134,13 +134,24 @@ async function main() {
     ],
     gasToken: 'SPONSORED' // Use sponsored gas - requires valid project ID
   });
-  console.log(`succesfully send cab tx, intentId: ${result.uiHash}`);
+  console.log(`succesfully send cab tx, intentId: ${result.outputUiHash.uiHash}`);
 
+  // wait for the intent to be opened on the input chains
+  await Promise.all(
+    result.inputsUiHash.map(async (data) => {
+      const openReceipts =  await intentClient.waitForUserIntentOpenReceipt({
+        uiHash: data.uiHash,
+      });
+      console.log(`intent open on chain ${openReceipts?.openChainId} txHash: ${openReceipts?.receipt.transactionHash}`);
+    })
+  );
+
+  // wait for the intent to be executed on the destination chain
   const receipt = await intentClient.waitForUserIntentExecutionReceipt({
-    uiHash: result.uiHash,
+    uiHash: result.outputUiHash.uiHash,
   });
   console.log(
-    `txHash on destination chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt.transactionHash}`
+    `intent executed on chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt.transactionHash}`
   );
   process.exit(0);
 }

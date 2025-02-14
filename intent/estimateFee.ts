@@ -1,5 +1,5 @@
 import { KERNEL_V3_2, getEntryPoint } from "@zerodev/sdk/constants";
-import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
+import { toMultiChainECDSAValidator } from "@zerodev/multi-chain-ecdsa-validator";
 import {
   type Hex,
   type Chain,
@@ -39,7 +39,7 @@ async function createIntentClinet(chain: Chain) {
   const kernelVersion = KERNEL_V3_2;
 
   // create ecdsa validator
-  const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
+  const ecdsaValidator = await toMultiChainECDSAValidator(publicClient, {
     signer: account,
     kernelVersion,
     entryPoint,
