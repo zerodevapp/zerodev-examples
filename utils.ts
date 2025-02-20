@@ -12,7 +12,7 @@ import { getEntryPoint } from "@zerodev/sdk/constants";
 import { GetKernelVersion } from "@zerodev/sdk/types";
 import { Hex, createPublicClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { baseSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 import {
   EntryPointVersion,
   PaymasterActions,
@@ -26,7 +26,7 @@ if (!zeroDevProjectId || !privateKey) {
 }
 
 const signer = privateKeyToAccount(privateKey as Hex);
-const chain = baseSepolia;
+const chain = sepolia;
 const publicClient = createPublicClient({
   transport: http(process.env.BUNDLER_RPC),
   chain,
@@ -60,13 +60,14 @@ export const getKernelClient = async <
     account,
     chain,
     bundlerTransport: http(process.env.BUNDLER_RPC),
-    paymaster: paymasterClient,
-    client: publicClient,
-    userOperation: {
-      estimateFeesPerGas: async ({ bundlerClient }) => {
-        return getUserOperationGasPrice(bundlerClient);
-      },
+    paymaster: {
+      getPaymasterData: (userOperation) => {
+        return paymasterClient.sponsorUserOperation({
+          userOperation,
+        })
+      }
     },
+    client: publicClient,
   });
 };
 

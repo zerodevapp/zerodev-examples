@@ -93,7 +93,7 @@ async function main() {
     });
     if (BigInt(cab.tokens[0].amount) >= parseUnits("0.1", 6)) {
       break;
-    } 
+    }
     console.log(
       `Insufficient USDC balance: ${formatUnits(
         BigInt(cab.tokens[0].amount),
@@ -123,7 +123,7 @@ async function main() {
           args: [account.address, parseUnits("0.1", 6)],
         }),
       },
-    ], 
+    ],
     outputTokens: [
       {
         chainId: base.id,
@@ -137,7 +137,7 @@ async function main() {
   // wait for the intent to be opened on the input chains
   await Promise.all(
     result.inputsUiHash.map(async (data) => {
-      const openReceipts =  await intentClient.waitForUserIntentOpenReceipt({
+      const openReceipts = await intentClient.waitForUserIntentOpenReceipt({
         uiHash: data.uiHash,
       });
       console.log(`intent open on chain ${openReceipts?.openChainId} txHash: ${openReceipts?.receipt.transactionHash}`);

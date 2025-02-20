@@ -88,13 +88,14 @@ const main = async () => {
     account,
     chain,
     bundlerTransport: http(bundlerRpc),
-    paymaster: paymasterClient,
-    client: publicClient,
-    userOperation: {
-      estimateFeesPerGas: async ({ bundlerClient }) => {
-        return getUserOperationGasPrice(bundlerClient);
-      },
+    paymaster: {
+      getPaymasterData: (userOperation) => {
+        return paymasterClient.sponsorUserOperation({
+          userOperation,
+        })
+      }
     },
+    client: publicClient,
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
