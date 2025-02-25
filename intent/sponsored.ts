@@ -74,7 +74,7 @@ async function createIntentClinet(chain: Chain) {
     account: kernelAccount,
     chain,
     bundlerTransport: http(bundlerRpc, { timeout }),
-    relayerTransport: http(`https://relayer-d6ne.onrender.com/${process.env.ZERODEV_MULTI_CHAIN_PROJECT_ID}`, { timeout }),
+    projectId: process.env.ZERODEV_MULTI_CHAIN_PROJECT_ID, // projectId is required for sponsored intent
     version: INTENT_V0_3,
   });
   return intentClient;
