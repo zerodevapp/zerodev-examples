@@ -8,8 +8,8 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { odysseyTestnet } from 'viem/chains'
 import { signAuthorization } from 'viem/experimental'
 
-// This is the kernel delegation address for the Odyssey testnet
-const KERNEL_DELEGATION_ADDRESS = "0x94F097E1ebEB4ecA3AAE54cabb08905B239A7D27"
+// This is the kernel account address
+const KERNEL_DELEGATION_ADDRESS = "0xE264dCCc54e4b6906c0D1Fee11D4326c06D33c80"
 
 const main = async () => {
   if (!process.env.PRIVATE_KEY) {
