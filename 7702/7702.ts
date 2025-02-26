@@ -73,10 +73,6 @@ const main = async () => {
     address: signer.address,
     // Set the 7702 authorization
     eip7702Auth: authorization,
-    eip7702SponsorAccount: privateKeyToAccount(
-      // NOTE: Don't worry about this private key, it's just for testing
-      "0x688b84097239bc2bca41079d02fae599964a5844bc9e64f524206ad53a927bb9"
-    ),
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
