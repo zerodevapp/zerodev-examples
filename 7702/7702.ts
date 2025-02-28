@@ -15,19 +15,19 @@ import {
   KernelVersionToAddressesMap,
 } from "@zerodev/sdk/constants";
 import { createKernelAccountClient } from "@zerodev/sdk";
-import { getUserOperationGasPrice } from "@zerodev/sdk/actions";
 import { createKernelAccount } from "@zerodev/sdk/accounts";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { createZeroDevPaymasterClient } from "@zerodev/sdk";
 
 const projectId = process.env.PROJECT_ID;
-const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`;
-const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`;
+const rpcUrl = process.env.RPC_URL;
+const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`; // For Holesky: `https://rpc.zerodev.app/api/v2/bundler/${projectId}?provider=ULTRA_RELAY`;
+const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`; // For Holesky: `https://rpc.zerodev.app/api/v2/paymaster/${projectId}?provider=ULTRA_RELAY`;
 const entryPoint = getEntryPoint("0.7");
 const kernelVersion = KERNEL_V3_3_BETA;
 const chain = odysseyTestnet;
 const publicClient = createPublicClient({
-  transport: http(bundlerRpc),
+  transport: http(rpcUrl),
   chain,
 });
 
@@ -48,7 +48,7 @@ const main = async () => {
     // We use the Odyssey testnet here, but you can use any network that
     // supports EIP-7702.
     chain,
-    transport: http(),
+    transport: http(rpcUrl),
   }).extend(eip7702Actions());
 
   const authorization = await walletClient.signAuthorization({
