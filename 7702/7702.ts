@@ -7,7 +7,7 @@ import {
   zeroAddress,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { odysseyTestnet } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { eip7702Actions } from "viem/experimental";
 import {
   getEntryPoint,
@@ -25,7 +25,7 @@ const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`; // For
 const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`; // For Holesky: `https://rpc.zerodev.app/api/v2/paymaster/${projectId}?provider=ULTRA_RELAY`;
 const entryPoint = getEntryPoint("0.7");
 const kernelVersion = KERNEL_V3_3_BETA;
-const chain = odysseyTestnet;
+const chain = sepolia;
 const publicClient = createPublicClient({
   transport: http(rpcUrl),
   chain,
@@ -45,7 +45,7 @@ const main = async () => {
     // Use any Viem-compatible EOA account
     account: signer,
 
-    // We use the Odyssey testnet here, but you can use any network that
+    // We use the Sepolia testnet here, but you can use any network that
     // supports EIP-7702.
     chain,
     transport: http(rpcUrl),
@@ -108,6 +108,8 @@ const main = async () => {
       },
     ]),
   });
+  console.log("UserOp sent:", userOpHash);
+  console.log("Waiting for UserOp to be completed...");
 
   const { receipt } = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
@@ -116,6 +118,8 @@ const main = async () => {
     "UserOp completed",
     `${chain.blockExplorers.default.url}/tx/${receipt.transactionHash}`
   );
+
+  process.exit(0);
 };
 
 main();
