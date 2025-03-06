@@ -20,20 +20,23 @@ import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { createZeroDevPaymasterClient } from "@zerodev/sdk";
 
 const projectId = process.env.PROJECT_ID;
-const rpcUrl = process.env.RPC_URL;
-const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`; // For Holesky: `https://rpc.zerodev.app/api/v2/bundler/${projectId}?provider=ULTRA_RELAY`;
-const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`; // For Holesky: `https://rpc.zerodev.app/api/v2/paymaster/${projectId}?provider=ULTRA_RELAY`;
+const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`;
+const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`;
 const entryPoint = getEntryPoint("0.7");
 const kernelVersion = KERNEL_V3_3_BETA;
+
+// We use the Sepolia testnet here, but you can use any network that
+// supports EIP-7702.
 const chain = sepolia;
+
 const publicClient = createPublicClient({
-  transport: http(rpcUrl),
+  transport: http(),
   chain,
 });
 
 const main = async () => {
-  if (!process.env.PRIVATE_KEY) {
-    throw new Error("PRIVATE_KEY is required");
+  if (!process.env.PRIVATE_KEY || !process.env.PROJECT_ID) {
+    throw new Error("PRIVATE_KEY and PROJECT_ID are required");
   }
 
   const signer = privateKeyToAccount(
@@ -44,11 +47,8 @@ const main = async () => {
   const walletClient = createWalletClient({
     // Use any Viem-compatible EOA account
     account: signer,
-
-    // We use the Sepolia testnet here, but you can use any network that
-    // supports EIP-7702.
     chain,
-    transport: http(rpcUrl),
+    transport: http(),
   }).extend(eip7702Actions());
 
   const authorization = await walletClient.signAuthorization({
