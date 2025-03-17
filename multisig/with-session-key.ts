@@ -5,14 +5,15 @@ import {
   createKernelAccountClient,
 } from "@zerodev/sdk";
 import { createWeightedValidator } from "@zerodev/weighted-validator";
-import { toECDSASigner as toWeightedECDSASigner } from "@zerodev/weighted-validator/signers";
+import { toECDSASigner as toWeightedECDSASigner } from "@zerodev/weighted-validator";
 import {
-  ModularSigner,
   toPermissionValidator,
+  deserializePermissionAccount,
+  serializePermissionAccount,
 } from "@zerodev/permissions";
 import { toECDSASigner } from "@zerodev/permissions/signers";
-import { toCallPolicy, CallPolicyVersion } from "@zerodev/permissions/policies";
-import { http, createPublicClient, parseAbi, encodeFunctionData, zeroAddress, type Address } from "viem";
+import { toSudoPolicy } from "@zerodev/permissions/policies";
+import { http, createPublicClient, parseAbi, encodeFunctionData, type Address, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
@@ -40,12 +41,10 @@ const contractABI = parseAbi([
   "function balanceOf(address owner) external view returns (uint256 balance)",
 ]);
 const sessionPrivateKey = generatePrivateKey();
-const sessionKeySigner = privateKeyToAccount(sessionPrivateKey);
 const entryPoint = getEntryPoint("0.7");
 
 const createSessionKey = async () => {
-  const ecdsaSigner2 = await toWeightedECDSASigner({ signer: signer2 });
-  const ecdsaSigner3 = await toWeightedECDSASigner({ signer: signer3 });
+  const ecdsaSigner1 = await toWeightedECDSASigner({ signer: signer2 });
 
   const multisigValidator = await createWeightedValidator(publicClient, {
     entryPoint,
@@ -57,7 +56,7 @@ const createSessionKey = async () => {
         { publicKey: signer3.address as Address, weight: 50 },
       ],
     },
-    signer: ecdsaSigner2,
+    signer: ecdsaSigner1,
     kernelVersion: KERNEL_V3_1,
   });
 
@@ -74,22 +73,12 @@ const createSessionKey = async () => {
     signer: privateKeyToAccount(sessionPrivateKey)
   });
 
-  const callPolicy = toCallPolicy({
-    policyVersion: CallPolicyVersion.V0_0_4,
-    permissions: [
-      {
-        target: contractAddress,
-        valueLimit: BigInt(0),
-        abi: contractABI,
-        functionName: "mint",
-      },
-    ],
-  });
-
   const sessionKeyValidator = await toPermissionValidator(publicClient, {
     entryPoint,
     signer: sessionKeySigner,
-    policies: [callPolicy],
+    policies: [
+      toSudoPolicy({}),
+    ],
     kernelVersion: KERNEL_V3_1,
   });
 
@@ -102,44 +91,18 @@ const createSessionKey = async () => {
     kernelVersion: KERNEL_V3_1,
   });
 
-  return {
-    accountAddress: sessionKeyAccount.address,
-    privateKey: sessionPrivateKey,
-  };
+  // Serialize the session key account with its private key
+  return await serializePermissionAccount(sessionKeyAccount, sessionPrivateKey);
 };
 
-const useSessionKey = async (sessionKeyData: { accountAddress: string, privateKey: string }) => {
-  const sessionKeySigner = await toECDSASigner({
-    signer: privateKeyToAccount(sessionKeyData.privateKey as Address)
-  });
-
-  const sessionKeyValidator = await toPermissionValidator(publicClient, {
+const useSessionKey = async (serializedSessionKey: string) => {
+  // Deserialize the session key account
+  const sessionKeyAccount = await deserializePermissionAccount(
+    publicClient,
     entryPoint,
-    signer: sessionKeySigner,
-    policies: [
-      toCallPolicy({
-        policyVersion: CallPolicyVersion.V0_0_4,
-        permissions: [
-          {
-            target: contractAddress,
-            valueLimit: BigInt(0),
-            abi: contractABI,
-            functionName: "mint",
-            args: [sessionKeyData.accountAddress as Address],
-          },
-        ],
-      }),
-    ],
-    kernelVersion: KERNEL_V3_1,
-  });
-
-  const sessionKeyAccount = await createKernelAccount(publicClient, {
-    entryPoint,
-    plugins: {
-      regular: sessionKeyValidator,
-    },
-    kernelVersion: KERNEL_V3_1,
-  });
+    KERNEL_V3_1,
+    serializedSessionKey
+  );
 
   const kernelPaymaster = createZeroDevPaymasterClient({
     chain: sepolia,
@@ -160,13 +123,9 @@ const useSessionKey = async (sessionKeyData: { accountAddress: string, privateKe
   const userOpHash = await kernelClient.sendUserOperation({
     callData: await sessionKeyAccount.encodeCalls([
       {
-        to: contractAddress,
+        to: zeroAddress,
         value: BigInt(0),
-        data: encodeFunctionData({
-          abi: contractABI,
-          functionName: "mint",
-          args: [sessionKeyAccount.address],
-        }),
+        data: "0x",
       },
     ]),
   });
@@ -180,11 +139,11 @@ const useSessionKey = async (sessionKeyData: { accountAddress: string, privateKe
 };
 
 const main = async () => {
-  // The owner creates a session key and shares the data with the agent
-  const sessionKeyData = await createSessionKey();
+  // The owner creates a session key and shares the serialized data with the agent
+  const serializedSessionKey = await createSessionKey();
 
-  // The agent uses the session key data to perform operations
-  await useSessionKey(sessionKeyData);
+  // The agent uses the serialized session key data to perform operations
+  await useSessionKey(serializedSessionKey);
 };
 
 main();

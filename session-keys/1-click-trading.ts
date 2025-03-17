@@ -120,8 +120,12 @@ const useSessionKey = async (serializedSessionKey: string) => {
       },
     ]),
   });
-
   console.log("userOp hash:", userOpHash);
+
+  await kernelClient.waitForUserOperationReceipt({
+    hash: userOpHash,
+  });
+  console.log("UserOp completed!");
 };
 
 const main = async () => {
