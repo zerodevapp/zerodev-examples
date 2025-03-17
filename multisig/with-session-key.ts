@@ -4,8 +4,6 @@ import {
   createZeroDevPaymasterClient,
   createKernelAccountClient,
 } from "@zerodev/sdk";
-import { createWeightedValidator } from "@zerodev/weighted-validator";
-import { toECDSASigner as toWeightedECDSASigner } from "@zerodev/weighted-validator";
 import {
   toPermissionValidator,
   deserializePermissionAccount,
@@ -13,10 +11,11 @@ import {
 } from "@zerodev/permissions";
 import { toECDSASigner } from "@zerodev/permissions/signers";
 import { toSudoPolicy } from "@zerodev/permissions/policies";
-import { http, createPublicClient, parseAbi, encodeFunctionData, type Address, zeroAddress } from "viem";
+import { http, createPublicClient, parseAbi, type Address, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
+import { createWeightedECDSAValidator } from "@zerodev/weighted-ecdsa-validator";
 
 if (
   !process.env.BUNDLER_RPC ||
@@ -44,19 +43,17 @@ const sessionPrivateKey = generatePrivateKey();
 const entryPoint = getEntryPoint("0.7");
 
 const createSessionKey = async () => {
-  const ecdsaSigner1 = await toWeightedECDSASigner({ signer: signer2 });
-
-  const multisigValidator = await createWeightedValidator(publicClient, {
+  const multisigValidator = await createWeightedECDSAValidator(publicClient, {
     entryPoint,
     config: {
       threshold: 100,
       signers: [
-        { publicKey: signer1.address as Address, weight: 100 },
-        { publicKey: signer2.address as Address, weight: 50 },
-        { publicKey: signer3.address as Address, weight: 50 },
+        { address: signer1.address as Address, weight: 100 },
+        { address: signer2.address as Address, weight: 50 },
+        { address: signer3.address as Address, weight: 50 },
       ],
     },
-    signer: ecdsaSigner1,
+    signers: [signer1],
     kernelVersion: KERNEL_V3_1,
   });
 
@@ -132,10 +129,10 @@ const useSessionKey = async (serializedSessionKey: string) => {
 
   console.log("UserOp hash:", userOpHash);
 
-  await kernelClient.waitForUserOperationReceipt({
+  const {receipt} = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
-  console.log("UserOp completed!");
+  console.log("UserOp completed!", receipt.transactionHash);
 };
 
 const main = async () => {
