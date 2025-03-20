@@ -142,7 +142,7 @@ async function main() {
       const openReceipts =  await intentClient.waitForUserIntentOpenReceipt({
         uiHash: data.uiHash,
       });
-      console.log(`intent open on chain ${openReceipts?.openChainId} txHash: ${openReceipts?.receipt.transactionHash}`);
+      console.log(`intent open on chain ${openReceipts?.openChainId} txHash: ${openReceipts?.receipt?.transactionHash}`);
     })
   );
 
@@ -151,7 +151,7 @@ async function main() {
     uiHash: result.outputUiHash.uiHash,
   });
   console.log(
-    `intent executed on chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt.transactionHash}`
+    `intent executed on chain: ${receipt?.executionChainId} txHash: ${receipt?.receipt?.transactionHash}`
   );
   process.exit(0);
 }
