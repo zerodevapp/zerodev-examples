@@ -4,6 +4,8 @@
   "license": "MIT",
   "dependencies": {
     "@solana-program/token": "^0.5.1",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.0",
     "@zerodev/ecdsa-validator": "^5.4.4",
     "@zerodev/hooks": "^5.3.0",
     "@zerodev/intent": "^0.0.25-test.2",
@@ -14,6 +16,7 @@
     "@zerodev/session-key": "^5.5.0",
     "@zerodev/weighted-ecdsa-validator": "^5.4.1",
     "@zerodev/weighted-validator": "^5.4.0",
+    "@konfeature/zd-intent": "^0.0.25-test.2",
     "viem": "^2.22.6"
   },
   "devDependencies": {
