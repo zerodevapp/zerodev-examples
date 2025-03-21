@@ -71,9 +71,12 @@ const main = async () => {
     authorizationList : [authorization]
   })
 
-  await publicClient.waitForTransactionReceipt({
+  const receipt = await publicClient.waitForTransactionReceipt({
     hash: hash
   });
+
+  console.log("tx completed ,",`${chain.blockExplorers.default.url}/tx/${receipt.transactionHash}`);
+
 
   process.exit(0);
 };
