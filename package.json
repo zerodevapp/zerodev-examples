@@ -13,7 +13,7 @@
     "@zerodev/session-key": "^5.5.0",
     "@zerodev/weighted-ecdsa-validator": "^5.4.1",
     "@zerodev/weighted-validator": "^5.4.0",
-    "viem": "^2.22.6"
+    "viem": "^2.23.12"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
