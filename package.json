@@ -3,17 +3,17 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@zerodev/ecdsa-validator": "^5.4.4",
-    "@zerodev/hooks": "^5.3.0",
+    "@zerodev/ecdsa-validator": "^5.4.5",
+    "@zerodev/hooks": "^5.3.3",
     "@zerodev/intent": "^0.0.24",
-    "@zerodev/multi-chain-ecdsa-validator": "^5.4.2",
-    "@zerodev/permissions": "^5.5.0",
-    "@zerodev/remote-signer": "^5.3.0",
-    "@zerodev/sdk": "^5.4.25",
-    "@zerodev/session-key": "^5.5.0",
-    "@zerodev/weighted-ecdsa-validator": "^5.4.1",
-    "@zerodev/weighted-validator": "^5.4.0",
-    "viem": "^2.23.12"
+    "@zerodev/multi-chain-ecdsa-validator": "^5.4.4",
+    "@zerodev/permissions": "^5.5.4",
+    "@zerodev/remote-signer": "^5.3.2",
+    "@zerodev/sdk": "^5.4.28",
+    "@zerodev/session-key": "^5.5.2",
+    "@zerodev/weighted-ecdsa-validator": "^5.4.2",
+    "@zerodev/weighted-validator": "^5.4.5",
+    "viem": "^2.23.15"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
