@@ -14,12 +14,12 @@ import {
   type WeightedSigner,
 } from "@zerodev/weighted-validator"
 
-if (!process.env.BUNDLER_RPC || !process.env.PAYMASTER_RPC) {
-  throw new Error("BUNDLER_RPC or PAYMASTER_RPC is not set")
+if (!process.env.ZERODEV_RPC) {
+  throw new Error("ZERODEV_RPC is not set")
 }
 
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
+  transport: http(process.env.ZERODEV_RPC),
   chain: sepolia,
 })
 
@@ -64,13 +64,13 @@ const main = async () => {
 
     const paymasterClient = createZeroDevPaymasterClient({
       chain: sepolia,
-      transport: http(process.env.PAYMASTER_RPC),
+      transport: http(process.env.ZERODEV_RPC),
     })
 
     return createWeightedKernelAccountClient({
       account,
       chain: sepolia,
-      bundlerTransport: http(process.env.BUNDLER_RPC),
+      bundlerTransport: http(process.env.ZERODEV_RPC),
       paymaster: paymasterClient
     })
   }

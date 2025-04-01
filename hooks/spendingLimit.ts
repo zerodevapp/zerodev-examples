@@ -16,15 +16,14 @@ import { TEST_ERC20Abi } from "./Test_ERC20abi";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
-  !process.env.BUNDLER_RPC ||
-  !process.env.PAYMASTER_RPC ||
+  !process.env.ZERODEV_RPC ||
   !process.env.PRIVATE_KEY
 ) {
-  throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set");
+  throw new Error("ZERODEV_RPC or PRIVATE_KEY is not set");
 }
 const chain = sepolia;
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
+  transport: http(process.env.ZERODEV_RPC),
   chain,
 });
 
@@ -69,13 +68,13 @@ const main = async () => {
   });
   const paymaster = createZeroDevPaymasterClient({
     chain: chain,
-    transport: http(process.env.PAYMASTER_RPC),
+    transport: http(process.env.ZERODEV_RPC),
   });
 
   const kernelClient = await createKernelAccountClient({
     account: kernelAccount,
     chain,
-    bundlerTransport: http(process.env.BUNDLER_RPC),
+    bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: {
       getPaymasterData(userOperation) {
         return paymaster.sponsorUserOperation({ userOperation });

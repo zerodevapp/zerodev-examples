@@ -6,16 +6,15 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
-const zeroDevProjectId = process.env.ZERODEV_PROJECT_ID
 const privateKey = process.env.PRIVATE_KEY
-if (!zeroDevProjectId || !privateKey) {
-  throw new Error("ZERODEV_PROJECT_ID or PRIVATE_KEY is not set")
+if (!process.env.ZERODEV_RPC || !privateKey) {
+  throw new Error("ZERODEV_RPC or PRIVATE_KEY is not set")
 }
 
 const signer = privateKeyToAccount(privateKey as Hex)
 const chain = sepolia
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
+  transport: http(process.env.ZERODEV_RPC),
   chain
 })
 const entryPoint = getEntryPoint("0.7")
@@ -37,13 +36,13 @@ async function main() {
 
   const pimlicoPaymasterClient = createZeroDevPaymasterClient({
     chain,
-    transport: http(process.env.PAYMASTER_RPC + '?provider=PIMLICO'),
+    transport: http(process.env.ZERODEV_RPC + '?provider=PIMLICO'),
   })
 
   const pimlicoKernelClient = createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(process.env.BUNDLER_RPC + "_make_it_fail" + '?provider=PIMLICO'),
+    bundlerTransport: http(process.env.ZERODEV_RPC + "_make_it_fail" + '?provider=PIMLICO'),
     paymaster: {
       getPaymasterData(userOperation) {
         return pimlicoPaymasterClient.sponsorUserOperation({ userOperation });
@@ -53,13 +52,13 @@ async function main() {
 
   const alchemyPaymasterClient = createZeroDevPaymasterClient({
     chain,
-    transport: http(process.env.PAYMASTER_RPC + '?provider=ALCHEMY'),
+    transport: http(process.env.ZERODEV_RPC + '?provider=ALCHEMY'),
   })
 
   const alchemyKernelClient = createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(process.env.BUNDLER_RPC + '?provider=ALCHEMY'),
+    bundlerTransport: http(process.env.ZERODEV_RPC + '?provider=ALCHEMY'),
     paymaster: {
       getPaymasterData(userOperation) {
         return alchemyPaymasterClient.sponsorUserOperation({ userOperation });

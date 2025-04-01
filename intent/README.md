@@ -21,7 +21,7 @@ Additionally, there are utilities for migration and fee estimation:
 1. Set up environment variables:
    ```
    PRIVATE_KEY=your_private_key
-   BUNDLER_RPC=your_bundler_rpc_url
+   ZERODEV_RPC=your_zerodev_rpc_url
    ZERODEV_MULTI_CHAIN_PROJECT_ID=your_project_id  # Required for sponsored transactions
    ```
 

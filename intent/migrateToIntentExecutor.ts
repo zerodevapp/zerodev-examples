@@ -14,8 +14,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-if (!process.env.PRIVATE_KEY) {
-  throw new Error("PRIVATE_KEY is not set");
+if (!process.env.PRIVATE_KEY || !process.env.ZERODEV_RPC) {
+  throw new Error("PRIVATE_KEY or ZERODEV_RPC is not set");
 }
 
 const timeout = 100_000;
@@ -23,8 +23,7 @@ const privateKey = process.env.PRIVATE_KEY as Hex;
 const account = privateKeyToAccount(privateKey);
 
 const chain = sepolia;
-const bundlerRpc = process.env.BUNDLER_RPC as string;
-const paymasterRpc = process.env.PAYMASTER_RPC as string;
+const zerodevRpc = process.env.ZERODEV_RPC as string;
 const publicClient = createPublicClient({
   chain,
   transport: http(),
@@ -54,13 +53,13 @@ async function getIntentClient(chain: Chain) {
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain,
-    transport: http(paymasterRpc, { timeout }),
+    transport: http(zerodevRpc, { timeout }),
   });
 
   const intentClient = createIntentClient({
     account: kernelAccount,
     chain,
-    bundlerTransport: http(bundlerRpc, { timeout }),
+    bundlerTransport: http(zerodevRpc, { timeout }),
     paymaster: {
       getPaymasterData: async (userOperation) => {
         return await paymasterClient.sponsorUserOperation({

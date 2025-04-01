@@ -8,8 +8,8 @@ import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 const entryPoint = getEntryPoint("0.7");
 
 const privateKey = process.env.PRIVATE_KEY;
-if (!privateKey) {
-  throw new Error("PRIVATE_KEY is not set");
+if (!privateKey || !process.env.ZERODEV_RPC) {
+  throw new Error("PRIVATE_KEY or ZERODEV_RPC is not set");
 }
 
 const signer = privateKeyToAccount(privateKey as Hex);
@@ -17,7 +17,7 @@ const signer = privateKeyToAccount(privateKey as Hex);
 const kernelVersion = KERNEL_V3_1;
 
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
+  transport: http(process.env.ZERODEV_RPC),
 });
 
 async function main() {

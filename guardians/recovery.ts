@@ -26,15 +26,14 @@ import {
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
 if (
-  !process.env.BUNDLER_RPC ||
-  !process.env.PAYMASTER_RPC ||
+  !process.env.ZERODEV_RPC ||
   !process.env.PRIVATE_KEY
 ) {
-  throw new Error("BUNDLER_RPC or PAYMASTER_RPC or PRIVATE_KEY is not set");
+  throw new Error("ZERODEV_RPC or PRIVATE_KEY is not set");
 }
 
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
+  transport: http(process.env.ZERODEV_RPC),
   chain: sepolia,
 });
 
@@ -74,13 +73,13 @@ const main = async () => {
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain: sepolia,
-    transport: http(process.env.PAYMASTER_RPC),
+    transport: http(process.env.ZERODEV_RPC),
   });
 
   const kernelClient = createKernelAccountClient({
     account,
     chain: sepolia,
-    bundlerTransport: http(process.env.BUNDLER_RPC),
+    bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: {
       getPaymasterData(userOperation) {
         return paymasterClient.sponsorUserOperation({ userOperation });
@@ -123,7 +122,7 @@ const main = async () => {
   const newKernelClient = createKernelAccountClient({
     account: newAccount,
     chain: sepolia,
-    bundlerTransport: http(process.env.BUNDLER_RPC),
+    bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: paymasterClient,
   });
 

@@ -11,9 +11,13 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
+if (!process.env.ZERODEV_RPC) {
+  throw new Error("ZERODEV_RPC is not set");
+}
+
 const chain = sepolia;
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
+  transport: http(process.env.ZERODEV_RPC),
   chain,
 });
 
@@ -37,13 +41,13 @@ const main = async () => {
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain,
-    transport: http(process.env.PAYMASTER_RPC),
+    transport: http(process.env.ZERODEV_RPC),
   });
 
   const kernelClient = createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(process.env.BUNDLER_RPC),
+    bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: paymasterClient,
     paymasterContext: { token: gasTokenAddresses[chain.id]["USDC"] },
   });

@@ -31,13 +31,11 @@ if (
     !process.env.PRIVATE_KEY ||
     !process.env.RPC_URL ||
     !process.env.OPTIMISM_SEPOLIA_RPC_URL ||
-    !process.env.BUNDLER_RPC ||
-    !process.env.PAYMASTER_RPC ||
-    !process.env.OPTIMISM_SEPOLIA_BUNDLER_RPC_URL ||
-    !process.env.OPTIMISM_SEPOLIA_PAYMASTER_RPC_URL
+    !process.env.ZERODEV_RPC ||
+    !process.env.OPTIMISM_SEPOLIA_ZERODEV_RPC
 ) {
     console.error(
-        "Please set PRIVATE_KEY, RPC_URL, OPTIMISM_SEPOLIA_RPC_URL, BUNDLER_RPC, PAYMASTER_RPC, OPTIMISM_SEPOLIA_BUNDLER_RPC_URL, OPTIMISM_SEPOLIA_PAYMASTER_RPC_URL"
+        "Please set PRIVATE_KEY, RPC_URL, OPTIMISM_SEPOLIA_RPC_URL, ZERODEV_RPC, OPTIMISM_SEPOLIA_ZERODEV_RPC"
     )
     process.exit(1)
 }
@@ -47,13 +45,8 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY
 const SEPOLIA_RPC_URL = process.env.RPC_URL
 const OPTIMISM_SEPOLIA_RPC_URL = process.env.OPTIMISM_SEPOLIA_RPC_URL
 
-const SEPOLIA_ZERODEV_RPC_URL = process.env.BUNDLER_RPC
-const SEPOLIA_ZERODEV_PAYMASTER_RPC_URL = process.env.PAYMASTER_RPC
-
-const OPTIMISM_SEPOLIA_ZERODEV_RPC_URL =
-    process.env.OPTIMISM_SEPOLIA_BUNDLER_RPC_URL
-const OPTIMISM_SEPOLIA_ZERODEV_PAYMASTER_RPC_URL =
-    process.env.OPTIMISM_SEPOLIA_PAYMASTER_RPC_URL
+const SEPOLIA_ZERODEV_RPC_URL = process.env.ZERODEV_RPC
+const OPTIMISM_SEPOLIA_ZERODEV_RPC_URL = process.env.OPTIMISM_SEPOLIA_ZERODEV_RPC
 
 const entryPoint = getEntryPoint("0.7")
 
@@ -145,12 +138,12 @@ const main = async () => {
 
     const sepoliaZeroDevPaymasterClient = createZeroDevPaymasterClient({
         chain: sepolia,
-        transport: http(SEPOLIA_ZERODEV_PAYMASTER_RPC_URL)
+        transport: http(SEPOLIA_ZERODEV_RPC_URL)
     })
 
     const opSepoliaZeroDevPaymasterClient = createZeroDevPaymasterClient({
         chain: optimismSepolia,
-        transport: http(OPTIMISM_SEPOLIA_ZERODEV_PAYMASTER_RPC_URL)
+        transport: http(OPTIMISM_SEPOLIA_ZERODEV_RPC_URL)
     })
 
     const sepoliaZerodevKernelClient = createKernelAccountClient({

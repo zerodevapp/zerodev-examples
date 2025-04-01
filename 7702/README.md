@@ -17,12 +17,11 @@ If you want to try gas sponsorship, remember to set a gas policy.
 Create a `.env` file at the **root directory** of this repo.
 
 ```env
-BUNDLER_RPC=
-PAYMASTER_RPC=
+ZERODEV_RPC=
 PRIVATE_KEY=
 ```
 
-You can obtain the bundler and paymaster URLs from the ZeroDev dashboard.  The private key is the key of the EOA wallet you want to upgrade.
+You can obtain the ZeroDev RPC URL from the ZeroDev dashboard. The private key is the key of the EOA wallet you want to upgrade.
 
 ### Run the script
 

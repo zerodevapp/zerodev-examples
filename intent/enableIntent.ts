@@ -18,14 +18,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-if (!process.env.PRIVATE_KEY) {
-  throw new Error("PRIVATE_KEY is not set");
+if (!process.env.PRIVATE_KEY || !process.env.ZERODEV_RPC) {
+  throw new Error("PRIVATE_KEY or ZERODEV_RPC is not set");
 }
 
 const timeout = 100_000;
 const chain = arbitrum;
-const bundlerRpc = process.env.BUNDLER_RPC as string;
-const paymasterRpc = process.env.PAYMASTER_RPC as string;
+const zerodevRpc = process.env.ZERODEV_RPC as string;
 // For testing purposes, we generate a new private key
 const privateKey = generatePrivateKey();
 
@@ -60,10 +59,10 @@ async function createIntentClientV3_0(kernelAccount: SmartAccount) {
   return createIntentClient({
     account: kernelAccount,
     chain,
-    bundlerTransport: http(bundlerRpc, { timeout }),
+    bundlerTransport: http(zerodevRpc, { timeout }),
     paymaster: createZeroDevPaymasterClient({
       chain,
-      transport: http(paymasterRpc, { timeout }),
+      transport: http(zerodevRpc, { timeout }),
     }),
     client: publicClient,
     version: INTENT_V0_3
@@ -94,7 +93,7 @@ async function createIntentClientV3_2(kernelAccount: any) {
   return createIntentClient({
     account: kernelAccount,
     chain,
-    bundlerTransport: http(bundlerRpc, { timeout }),
+    bundlerTransport: http(zerodevRpc, { timeout }),
     version: INTENT_V0_3
   });
 }
