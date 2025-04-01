@@ -20,9 +20,11 @@ import { createKernelAccount } from "@zerodev/sdk/accounts";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
 import { createZeroDevPaymasterClient } from "@zerodev/sdk";
 
-const projectId = process.env.PROJECT_ID;
-const bundlerRpc = `https://rpc.zerodev.app/api/v2/bundler/${projectId}`;
-const paymasterRpc = `https://rpc.zerodev.app/api/v2/paymaster/${projectId}`;
+if (!process.env.ZERODEV_RPC) {
+  throw new Error("ZERODEV_RPC is not set");
+}
+
+const ZERODEV_RPC = process.env.ZERODEV_RPC;
 const entryPoint = getEntryPoint("0.7");
 const kernelVersion = KERNEL_V3_3_BETA;
 
@@ -31,13 +33,13 @@ const kernelVersion = KERNEL_V3_3_BETA;
 const chain = sepolia;
 
 const publicClient = createPublicClient({
-  transport: http(),
+  transport: http(ZERODEV_RPC),
   chain,
 });
 
 const main = async () => {
-  if (!process.env.PRIVATE_KEY || !process.env.PROJECT_ID) {
-    throw new Error("PRIVATE_KEY and PROJECT_ID are required");
+  if (!process.env.PRIVATE_KEY) {
+    throw new Error("PRIVATE_KEY is required");
   }
 
   const signer = privateKeyToAccount(
@@ -49,7 +51,7 @@ const main = async () => {
     // Use any Viem-compatible EOA account
     account: signer,
     chain,
-    transport: http(),
+    transport: http(ZERODEV_RPC),
   }).extend(eip7702Actions()).extend(erc7821Actions());
 
   const authorization = await walletClient.signAuthorization({

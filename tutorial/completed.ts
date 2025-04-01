@@ -103,6 +103,8 @@ const main = async () => {
     args: [accountAddress],
   });
   console.log(`NFT balance: ${nftBalance}`);
+
+  process.exit(0);
 };
 
 main();

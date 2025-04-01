@@ -19,16 +19,15 @@ import {
   SmartAccount,
 } from "viem/account-abstraction";
 
-const zeroDevProjectId = process.env.ZERODEV_PROJECT_ID;
 const privateKey = process.env.PRIVATE_KEY;
-if (!zeroDevProjectId || !privateKey) {
-  throw new Error("ZERODEV_PROJECT_ID or PRIVATE_KEY is not set");
+if (!process.env.ZERODEV_RPC || !privateKey) {
+  throw new Error("ZERODEV_RPC or PRIVATE_KEY is not set");
 }
 
 const signer = privateKeyToAccount(privateKey as Hex);
 const chain = sepolia;
 const publicClient = createPublicClient({
-  transport: http(process.env.BUNDLER_RPC),
+  transport: http(process.env.ZERODEV_RPC),
   chain,
 });
 
@@ -54,12 +53,12 @@ export const getKernelClient = async <
   console.log("My account:", account.address);
   const paymasterClient = createZeroDevPaymasterClient({
     chain,
-    transport: http(process.env.PAYMASTER_RPC),
+    transport: http(process.env.ZERODEV_RPC),
   });
   return createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(process.env.BUNDLER_RPC),
+    bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: {
       getPaymasterData: (userOperation) => {
         return paymasterClient.sponsorUserOperation({
@@ -77,13 +76,12 @@ export const getKernelV1Account = async () => {
     throw new Error("PRIVATE_KEY environment variable not set");
   }
 
-  const rpcUrl = process.env.BUNDLER_RPC;
-  if (!rpcUrl) {
-    throw new Error("BUNDLER_RPC environment variable not set");
+  if (!process.env.ZERODEV_RPC) {
+    throw new Error("ZERODEV_RPC environment variable not set");
   }
 
   const publicClient = createPublicClient({
-    transport: http(rpcUrl),
+    transport: http(process.env.ZERODEV_RPC),
     chain,
   });
   const signer = privateKeyToAccount(privateKey);
@@ -107,37 +105,33 @@ export const getKernelV1AccountClient = async ({
   };
   account: SmartAccount<KernelSmartAccountV1Implementation>;
 }) => {
-  const zeroDevBundlerRpcHost = process.env.BUNDLER_RPC;
+  if (!process.env.ZERODEV_RPC) {
+    throw new Error("ZERODEV_RPC environment variable not set");
+  }
   return createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(zeroDevBundlerRpcHost),
+    bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster,
   });
 };
 
 export const getZeroDevPaymasterClient = () => {
-  if (!process.env.PAYMASTER_RPC)
-    throw new Error("PAYMASTER_RPC environment variable not set");
-
-  const paymasterRpc = process.env.PAYMASTER_RPC;
+  if (!process.env.ZERODEV_RPC)
+    throw new Error("ZERODEV_RPC environment variable not set");
 
   return createZeroDevPaymasterClient({
     chain,
-    transport: http(paymasterRpc),
+    transport: http(process.env.ZERODEV_RPC),
   });
 };
 
 export const getZeroDevERC20PaymasterClient = () => {
-  if (!process.env.ZERODEV_PROJECT_ID)
-    throw new Error("ZERODEV_PROJECT_ID environment variable not set");
+  if (!process.env.ZERODEV_RPC)
+    throw new Error("ZERODEV_RPC environment variable not set");
 
   return createZeroDevPaymasterClient({
     chain,
-    transport: http(
-      process.env.PAYMASTER_RPC ||
-      "https://rpc.zerodev.app/api/v2/paymaster/" +
-      process.env.ZERODEV_PROJECT_ID
-    ),
+    transport: http(process.env.ZERODEV_RPC),
   });
 };
