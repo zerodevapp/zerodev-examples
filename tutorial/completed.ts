@@ -10,12 +10,11 @@ import {
 } from "@zerodev/sdk";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 
-if (!process.env.ZERODEV_PROJECT_ID) {
-  throw new Error("ZERODEV_PROJECT_ID is not set");
+if (!process.env.ZERODEV_RPC) {
+  throw new Error("ZERODEV_RPC is not set");
 }
 
-const BUNDLER_RPC = `https://rpc.zerodev.app/api/v2/bundler/${process.env.ZERODEV_PROJECT_ID}`;
-const PAYMASTER_RPC = `https://rpc.zerodev.app/api/v2/paymaster/${process.env.ZERODEV_PROJECT_ID}`;
+const ZERODEV_RPC = process.env.ZERODEV_RPC
 
 // The NFT contract we will be interacting with
 const contractAddress = "0x34bE7f35132E97915633BC1fc020364EA5134863";
@@ -27,7 +26,7 @@ const contractABI = parseAbi([
 // Construct a public client
 const chain = sepolia;
 const publicClient = createPublicClient({
-  transport: http(BUNDLER_RPC),
+  transport: http(ZERODEV_RPC),
   chain,
 });
 const entryPoint = getEntryPoint("0.7");
@@ -55,14 +54,14 @@ const main = async () => {
 
   const zerodevPaymaster = createZeroDevPaymasterClient({
     chain,
-    transport: http(PAYMASTER_RPC),
+    transport: http(ZERODEV_RPC),
   });
 
   // Construct a Kernel account client
   const kernelClient = createKernelAccountClient({
     account,
     chain,
-    bundlerTransport: http(BUNDLER_RPC),
+    bundlerTransport: http(ZERODEV_RPC),
     paymaster: {
       getPaymasterData(userOperation) {
         return zerodevPaymaster.sponsorUserOperation({ userOperation });
