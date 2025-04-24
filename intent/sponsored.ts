@@ -16,7 +16,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import {
   createIntentClient,
   installIntentExecutor,
-  INTENT_V0_3,
+  INTENT_V0_4,
 } from "@zerodev/intent";
 import { arbitrum, base } from "viem/chains";
 import dotenv from "dotenv";
@@ -66,7 +66,7 @@ async function createIntentClinet(chain: Chain) {
     },
     kernelVersion,
     entryPoint,
-    initConfig: [installIntentExecutor(INTENT_V0_3)],
+    initConfig: [installIntentExecutor(INTENT_V0_4)],
   });
 
   // the cabclient can be used to send normal userOp and cross-chain cab tx
@@ -75,7 +75,7 @@ async function createIntentClinet(chain: Chain) {
     chain,
     bundlerTransport: http(zerodevRpc, { timeout }),
     projectId: process.env.ZERODEV_MULTI_CHAIN_PROJECT_ID, // projectId is required for sponsored intent
-    version: INTENT_V0_3,
+    version: INTENT_V0_4,
   });
   return intentClient;
 }

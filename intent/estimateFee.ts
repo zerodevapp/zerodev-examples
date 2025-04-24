@@ -10,7 +10,7 @@ import {
 } from "viem";
 import { createKernelAccount } from "@zerodev/sdk";
 import { privateKeyToAccount } from "viem/accounts";
-import { createIntentClient, installIntentExecutor, INTENT_V0_3 } from "@zerodev/intent";
+import { createIntentClient, installIntentExecutor, INTENT_V0_4 } from "@zerodev/intent";
 import { base, optimism } from "viem/chains";
 import dotenv from "dotenv";
 
@@ -24,7 +24,7 @@ const timeout = 100_000;
 const privateKey = process.env.PRIVATE_KEY as Hex;
 const account = privateKeyToAccount(privateKey);
 
-const intentVersion = INTENT_V0_3;
+const intentVersion = INTENT_V0_4;
 
 const zerodevRpc = process.env.ZERODEV_RPC as string;
 

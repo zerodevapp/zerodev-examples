@@ -6,8 +6,8 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
 } from "@zerodev/sdk";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createIntentClient, INTENT_V0_2, INTENT_V0_3 } from "@zerodev/intent";
+import { privateKeyToAccount } from "viem/accounts";
+import { createIntentClient, INTENT_V0_4 } from "@zerodev/intent";
 import { sepolia } from "viem/chains";
 import { getIntentExecutorPluginData } from "@zerodev/intent";
 import dotenv from "dotenv";
@@ -48,7 +48,7 @@ async function getIntentClient(chain: Chain) {
     },
     kernelVersion,
     entryPoint,
-    pluginMigrations: [getIntentExecutorPluginData(INTENT_V0_3)],
+    pluginMigrations: [getIntentExecutorPluginData(INTENT_V0_4)],
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
@@ -67,7 +67,7 @@ async function getIntentClient(chain: Chain) {
         });
       },
     },
-    version: INTENT_V0_3,
+    version: INTENT_V0_4,
   });
   return intentClient;
 }
