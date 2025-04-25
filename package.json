@@ -3,22 +3,22 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@zerodev/ecdsa-validator": "^5.4.5",
-    "@zerodev/hooks": "^5.3.3",
+    "@zerodev/ecdsa-validator": "^5.4.8",
+    "@zerodev/hooks": "^5.3.4",
     "@zerodev/intent": "^0.0.24",
-    "@zerodev/multi-chain-ecdsa-validator": "^5.4.4",
-    "@zerodev/permissions": "^5.5.4",
-    "@zerodev/remote-signer": "^5.3.2",
-    "@zerodev/sdk": "^5.4.28",
-    "@zerodev/session-key": "^5.5.2",
-    "@zerodev/weighted-ecdsa-validator": "^5.4.2",
-    "@zerodev/weighted-validator": "^5.4.5",
-    "viem": "^2.23.15"
+    "@zerodev/multi-chain-ecdsa-validator": "^5.4.5",
+    "@zerodev/permissions": "^5.5.5",
+    "@zerodev/remote-signer": "^5.3.3",
+    "@zerodev/sdk": "^5.4.30",
+    "@zerodev/session-key": "^5.5.3",
+    "@zerodev/weighted-ecdsa-validator": "^5.4.3",
+    "@zerodev/weighted-validator": "^5.4.6",
+    "viem": "^2.28.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.6",
-    "dotenv": "^16.3.1",
-    "tslib": "^2.6.2",
-    "typescript": "^5.2.2"
+    "@types/node": "^20.17.30",
+    "dotenv": "^16.5.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3"
   }
 }
