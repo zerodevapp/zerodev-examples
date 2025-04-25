@@ -52,7 +52,7 @@ const main = async () => {
     account: signer,
     chain,
     transport: http(ZERODEV_RPC),
-  }).extend(eip7702Actions()).extend(erc7821Actions());
+  }).extend(erc7821Actions());
 
   const authorization = await walletClient.signAuthorization({
     contractAddress:
