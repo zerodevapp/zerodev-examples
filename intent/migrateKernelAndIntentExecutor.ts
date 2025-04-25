@@ -4,7 +4,7 @@ import { KERNEL_V3_1, KERNEL_V3_2, getEntryPoint } from "@zerodev/sdk/constants"
 import { createZeroDevPaymasterClient } from "@zerodev/sdk";
 import { privateKeyToAccount } from "viem/accounts";
 import { createEcdsaKernelMigrationAccount } from "@zerodev/ecdsa-validator";
-import { createIntentClient, INTENT_V0_3, getIntentExecutorPluginData } from "@zerodev/intent";
+import { createIntentClient, INTENT_V0_4, getIntentExecutorPluginData } from "@zerodev/intent";
 import { base } from "viem/chains";
 import dotenv from "dotenv";
 
@@ -39,7 +39,7 @@ async function getIntentClient(chain: Chain) {
       from: kernelVersion,
       to: migrationVersion,
     },
-    pluginMigrations: [getIntentExecutorPluginData(INTENT_V0_3)],
+    pluginMigrations: [getIntentExecutorPluginData(INTENT_V0_4)],
   });
 
   const paymasterClient = createZeroDevPaymasterClient({
@@ -58,7 +58,7 @@ async function getIntentClient(chain: Chain) {
         });
       },
     },
-    version: INTENT_V0_3,
+    version: INTENT_V0_4,
   });
   return intentClient;
 }
