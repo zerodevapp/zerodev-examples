@@ -9,7 +9,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getUserOperationGasPrice } from "@zerodev/sdk/actions"
-import { holesky } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { eip7702Actions } from "viem/experimental";
 import {
   getEntryPoint,
@@ -30,7 +30,7 @@ const kernelVersion = KERNEL_V3_3;
 
 // We use the Sepolia testnet here, but you can use any network that
 // supports EIP-7702.
-const chain = holesky;
+const chain = sepolia;
 
 const publicClient = createPublicClient({
   transport: http(),
