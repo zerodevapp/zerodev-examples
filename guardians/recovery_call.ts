@@ -3,7 +3,6 @@ import {
   createKernelAccount,
   createZeroDevPaymasterClient,
   createKernelAccountClient,
-  KernelAccountAbi,
   AccountNotFoundError,
   KernelValidator,
 } from "@zerodev/sdk";
@@ -18,26 +17,18 @@ import {
   concat,
   encodeAbiParameters,
   parseAbiParameters,
-  Account,
   Address,
 } from "viem";
 import { generatePrivateKey, parseAccount, privateKeyToAccount } from "viem/accounts";
-import { sepolia } from "viem/chains";
+import { lineaSepolia} from "viem/chains";
 import {
-  createWeightedECDSAValidator,
-  getRecoveryAction,
-} from "@zerodev/weighted-ecdsa-validator";
-import {
-  getValidatorAddress,
   signerToEcdsaValidator,
 } from "@zerodev/ecdsa-validator";
 import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants";
 import type { Chain, Client, Hash, Prettify, Transport } from "viem"
 import { getAction } from "viem/utils";
 import {
-  type SendUserOperationParameters,
   type SmartAccount,
-  prepareUserOperation,
   sendUserOperation
 } from "viem/account-abstraction"
 
@@ -50,10 +41,10 @@ if (
 
 const publicClient = createPublicClient({
   transport: http(process.env.ZERODEV_RPC),
-  chain: sepolia,
+  chain: lineaSepolia,
 });
 
-const CALLER_HOOK = "0x083B97e4825735a8189de1f1E8eb56681D7d3916";
+const CALLER_HOOK = "0x990a9FC8189D96d59E3cE98bd87F42135a24a30E";
 const RECOVERY_ACTION_ADDRESS = "0xe884C2868CC82c16177eC73a93f7D9E6F3A5DC6E"
 const ACTION_MODULE_TYPE = 3;
 const oldSigner = privateKeyToAccount(generatePrivateKey());
@@ -164,7 +155,7 @@ export async function recoverAccount<
 
 const main = async () => {
   const paymasterClient = createZeroDevPaymasterClient({
-    chain: sepolia,
+    chain: lineaSepolia,
     transport: http(process.env.ZERODEV_RPC),
   });
 
@@ -211,7 +202,7 @@ const main = async () => {
   // ---- install recovery action with caller Hook ----
   const targetClient = createKernelAccountClient({
     account: targetAccount,
-    chain: sepolia,
+    chain: lineaSepolia,
     bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: {
       getPaymasterData(userOperation) {
@@ -231,7 +222,7 @@ const main = async () => {
   console.log("performing recovery...");
   const guardianClient = createKernelAccountClient({
     account: guardianAccount,
-    chain: sepolia,
+    chain: lineaSepolia,
     bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: paymasterClient,
   });
@@ -260,7 +251,7 @@ const main = async () => {
 
   const newKernelClient = createKernelAccountClient({
     account: newAccount,
-    chain: sepolia,
+    chain: lineaSepolia,
     bundlerTransport: http(process.env.ZERODEV_RPC),
     paymaster: paymasterClient,
   });
