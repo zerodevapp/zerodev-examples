@@ -33,10 +33,6 @@ const publicClient = createPublicClient({
 });
 
 const main = async () => {
-  if (!process.env.PRIVATE_KEY) {
-    throw new Error("PRIVATE_KEY is required");
-  }
-
   const signer = privateKeyToAccount(
     generatePrivateKey() ?? (process.env.PRIVATE_KEY as Hex)
   );
