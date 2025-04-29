@@ -1,21 +1,16 @@
 import "dotenv/config";
 import {
   createPublicClient,
-  createWalletClient,
   Hex,
   http,
   zeroAddress,
-  LocalAccount
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getUserOperationGasPrice } from "@zerodev/sdk/actions"
 import { sepolia } from "viem/chains";
-import { eip7702Actions } from "viem/experimental";
 import {
   getEntryPoint,
-  KERNEL_7702_DELEGATION_ADDRESS,
   KERNEL_V3_3,
-  KernelVersionToAddressesMap,
 } from "@zerodev/sdk/constants";
 import { create7702KernelAccount, create7702KernelAccountClient } from "@zerodev/ecdsa-validator";
 import { createZeroDevPaymasterClient } from "@zerodev/sdk";
@@ -48,7 +43,7 @@ const main = async () => {
   console.log("EOA Address:", signer.address);
 
   const account = await create7702KernelAccount(publicClient, {
-    signer : signer as LocalAccount,
+    signer,
     entryPoint,
     kernelVersion
   })
@@ -57,7 +52,7 @@ const main = async () => {
     chain,
     transport: http(ZERODEV_RPC),
   });
-  
+
   const kernelClient = create7702KernelAccountClient({
     account,
     chain,
