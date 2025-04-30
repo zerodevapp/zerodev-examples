@@ -132,7 +132,7 @@ async function main() {
       },
     ],
   });
-  console.log(`succesfully send cab tx, intentId: ${result.outputUiHash.uiHash}`);
+  console.log(`successfully send cab tx, intentId: ${result.outputUiHash.uiHash}`);
 
   // wait for the intent to be opened on the input chains
   await Promise.all(
