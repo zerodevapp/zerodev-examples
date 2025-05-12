@@ -5,20 +5,13 @@ import {
   createKernelAccountClient,
 } from "@zerodev/sdk"
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator"
-import { http, Hex, createPublicClient, zeroAddress, Address } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
+import { http, Hex, createPublicClient, zeroAddress } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
-import { KERNEL_V3_1 } from "@zerodev/sdk/constants"
-import {
-  entryPoint07Address,
-  EntryPointVersion,
-} from "viem/account-abstraction"
+import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants"
 
-if (
-  !process.env.ZERODEV_RPC ||
-  !process.env.PRIVATE_KEY
-) {
-  throw new Error("ZERODEV_RPC or PRIVATE_KEY is not set")
+if (!process.env.ZERODEV_RPC) {
+  throw new Error("ZERODEV_RPC is not set")
 }
 
 const chain = sepolia
@@ -28,11 +21,8 @@ const publicClient = createPublicClient({
   chain,
 })
 
-const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
-const entryPoint = {
-  address: entryPoint07Address as Address,
-  version: "0.7" as EntryPointVersion,
-}
+const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex || generatePrivateKey())
+const entryPoint = getEntryPoint("0.7")
 const kernelVersion = KERNEL_V3_1
 
 const main = async () => {
