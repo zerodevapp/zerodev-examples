@@ -12,8 +12,7 @@ import {
   getEntryPoint,
   KERNEL_V3_3,
 } from "@zerodev/sdk/constants";
-import { create7702KernelAccount, create7702KernelAccountClient } from "@zerodev/ecdsa-validator";
-import { createZeroDevPaymasterClient } from "@zerodev/sdk";
+import { createKernelAccount, createKernelAccountClient, createZeroDevPaymasterClient } from "@zerodev/sdk";
 
 if (!process.env.ZERODEV_RPC) {
   throw new Error("ZERODEV_RPC is not set");
@@ -33,13 +32,13 @@ const publicClient = createPublicClient({
 });
 
 const main = async () => {
-  const signer = privateKeyToAccount(
+  const eip7702Account = privateKeyToAccount(
     generatePrivateKey() ?? (process.env.PRIVATE_KEY as Hex)
   );
-  console.log("EOA Address:", signer.address);
+  console.log("EOA Address:", eip7702Account.address);
 
-  const account = await create7702KernelAccount(publicClient, {
-    signer,
+  const account = await createKernelAccount(publicClient, {
+    eip7702Account,
     entryPoint,
     kernelVersion
   })
@@ -49,7 +48,7 @@ const main = async () => {
     transport: http(ZERODEV_RPC),
   });
 
-  const kernelClient = create7702KernelAccountClient({
+  const kernelClient = createKernelAccountClient({
     account,
     chain,
     bundlerTransport: http(ZERODEV_RPC),
