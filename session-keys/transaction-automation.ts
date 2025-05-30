@@ -182,6 +182,8 @@ const main = async () => {
 
   // revoke session key
   await revokeSessionKey(sessionKeySigner.account.address);
+
+  process.exit(0);
 };
 
 main();
