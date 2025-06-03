@@ -18,13 +18,13 @@ if (!process.env.ZERODEV_RPC) {
   throw new Error("ZERODEV_RPC is not set");
 }
 
-const ZERODEV_RPC = process.env.ZERODEV_RPC;
 const entryPoint = getEntryPoint("0.7");
 const kernelVersion = KERNEL_V3_3;
 
 // We use the Sepolia testnet here, but you can use any network that
 // supports EIP-7702.
 const chain = sepolia;
+const ZERODEV_RPC = process.env.ZERODEV_RPC;
 
 const publicClient = createPublicClient({
   transport: http(),
@@ -40,8 +40,9 @@ const main = async () => {
   const account = await createKernelAccount(publicClient, {
     eip7702Account,
     entryPoint,
-    kernelVersion
+    kernelVersion,
   })
+  console.log("account", account.address);
 
   const paymasterClient = createZeroDevPaymasterClient({
     chain,
@@ -52,7 +53,11 @@ const main = async () => {
     account,
     chain,
     bundlerTransport: http(ZERODEV_RPC),
-    paymaster: paymasterClient,
+    paymaster: {
+      getPaymasterData: async (userOperation) => {
+        return paymasterClient.sponsorUserOperation({userOperation})
+      },
+    },
     client: publicClient,
     userOperation: {
       estimateFeesPerGas: async ({ bundlerClient }) => {

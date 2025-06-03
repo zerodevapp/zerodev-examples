@@ -7,7 +7,7 @@
     "@zerodev/hooks": "^5.3.4",
     "@zerodev/intent": "^0.0.25",
     "@zerodev/multi-chain-ecdsa-validator": "^5.4.5",
-    "@zerodev/permissions": "^5.5.5",
+    "@zerodev/permissions": "^5.5.8",
     "@zerodev/remote-signer": "^5.3.3",
     "@zerodev/sdk": "^5.4.36",
     "@zerodev/session-key": "^5.5.3",
