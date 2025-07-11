@@ -1,15 +1,16 @@
 import "dotenv/config";
 import { signerToEcdsaValidator } from "@zerodev/ecdsa-validator";
-import { toInitConfig, toPermissionValidator } from "@zerodev/permissions";
+import { deserializePermissionAccount, ModularSigner, serializePermissionAccount, toInitConfig, toPermissionValidator } from "@zerodev/permissions";
 import { toSudoPolicy } from "@zerodev/permissions/policies";
 import { toECDSASigner } from "@zerodev/permissions/signers";
 import {
+  addressToEmptyAccount,
   createKernelAccount,
   createKernelAccountClient,
   createZeroDevPaymasterClient,
 } from "@zerodev/sdk";
 import { getEntryPoint, KERNEL_V3_3 } from "@zerodev/sdk/constants";
-import { createPublicClient, zeroAddress } from "viem";
+import { Address, createPublicClient, zeroAddress } from "viem";
 import { http } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -25,21 +26,25 @@ const signer = privateKeyToAccount(generatePrivateKey());
 const kernelVersion = KERNEL_V3_3;
 
 const entryPoint = getEntryPoint("0.7");
-const main = async () => {
+
+const createSessionKey = async (sessionKeyAddress: Address) => {
+  // Notice you don't need the actual owner signer here, only the address
+  const ownerSigner = addressToEmptyAccount(signer.address);
+  
   const ecdsaValidator = await signerToEcdsaValidator(publicClient, {
     entryPoint,
-    signer,
+    signer: ownerSigner,
     kernelVersion,
   });
 
-  const sessionKeySigner = privateKeyToAccount(generatePrivateKey());
-  const ecdsaModularSigner = await toECDSASigner({
-    signer: sessionKeySigner,
-  });
+  // Create an "empty account" as the signer -- you only need the public
+  // key (address) to do this.
+  const emptyAccount = addressToEmptyAccount(sessionKeyAddress);
+  const emptySessionKeySigner = await toECDSASigner({ signer: emptyAccount });
 
   const permissionPlugin = await toPermissionValidator(publicClient, {
     entryPoint,
-    signer: ecdsaModularSigner,
+    signer: emptySessionKeySigner,
     policies: [
       // In this example, we are just using a sudo policy to allow everything.
       // In practice, you would want to set more restrictive policies.
@@ -48,7 +53,7 @@ const main = async () => {
     kernelVersion,
   });
 
-  const masterAccount = await createKernelAccount(publicClient, {
+  const sessionKeyAccount = await createKernelAccount(publicClient, {
     entryPoint,
     plugins: {
       sudo: ecdsaValidator,
@@ -57,13 +62,28 @@ const main = async () => {
     initConfig: await toInitConfig(permissionPlugin),
   });
 
+  return await serializePermissionAccount(sessionKeyAccount, undefined, undefined, undefined, permissionPlugin);
+};
+
+const useSessionKey = async (
+  approval: string,
+  sessionKeySigner: ModularSigner
+) => {
+  const sessionKeyAccount = await deserializePermissionAccount(
+    publicClient,
+    entryPoint,
+    kernelVersion,
+    approval,
+    sessionKeySigner
+  );
+
   const kernelPaymaster = createZeroDevPaymasterClient({
-    chain,
+    chain: sepolia,
     transport: http(ZERODEV_RPC),
   });
   const kernelClient = createKernelAccountClient({
-    account: masterAccount,
-    chain,
+    account: sessionKeyAccount,
+    chain: sepolia,
     bundlerTransport: http(ZERODEV_RPC),
     paymaster: {
       getPaymasterData(userOperation) {
@@ -73,24 +93,33 @@ const main = async () => {
   });
 
   const userOpHash = await kernelClient.sendUserOperation({
-    calls: [
+    callData: await sessionKeyAccount.encodeCalls([
       {
         to: zeroAddress,
+        value: BigInt(0),
         data: "0x",
       },
-    ],
+    ]),
   });
 
-  console.log("User operation hash:", userOpHash);
+  console.log("userOp hash:", userOpHash);
 
-  const userOpReceipt = await kernelClient.waitForUserOperationReceipt({
+  const _receipt = await kernelClient.waitForUserOperationReceipt({
     hash: userOpHash,
   });
+  console.log({ txExplorerUrl: `${chain.blockExplorers.default.url}/tx/${_receipt.receipt.transactionHash}` });
+};
+const main = async () => {
+  const sessionPrivateKey = generatePrivateKey();
+  const sessionKeyAccount = privateKeyToAccount(sessionPrivateKey);
 
-  console.log(
-    "User operation receipt:",
-    `${chain.blockExplorers?.default.url}/tx/${userOpReceipt.receipt.transactionHash}`
-  );
+  const sessionKeySigner = await toECDSASigner({
+    signer: sessionKeyAccount,
+  });
+
+  const serializedSessionKey = await createSessionKey(sessionKeySigner.account.address);
+
+  await useSessionKey(serializedSessionKey, sessionKeySigner);
 
   process.exit(0);
 };
