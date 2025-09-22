@@ -31,7 +31,7 @@ Follow these steps to get this project up and running on your local machine:
 
    For `ZERODEV_RPC`, you can get it from [the ZeroDev dashboard](https://dashboard.zerodev.app/) by creating a project. The examples use Sepolia, so make sure to create a project for Sepolia.
    
-   The `PRIVATE_KEY` can be any valid Ethereum private key.  You should use a random test key.
+   The `PRIVATE_KEY` can be any valid Ethereum private key.  You should use a random test key; [this website](https://privatekeys.pw/keys/ethereum/random) can generates random keys for you.
    
    If you want to run the examples on another network, make sure to update the `chain` object in the code (some examples use the chain object in [./utils.ts](./utils.ts) so you'd need to update it there).
 
