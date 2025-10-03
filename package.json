@@ -7,12 +7,12 @@
     "@zerodev/hooks": "^5.3.4",
     "@zerodev/intent": "^0.0.25",
     "@zerodev/multi-chain-ecdsa-validator": "^5.4.5",
-    "@zerodev/permissions": "^5.5.12",
+    "@zerodev/permissions": "^5.6.0",
     "@zerodev/remote-signer": "^5.3.3",
-    "@zerodev/sdk": "^5.4.41",
+    "@zerodev/sdk": "^5.5.2",
     "@zerodev/session-key": "^5.5.3",
     "@zerodev/weighted-ecdsa-validator": "^5.4.3",
-    "@zerodev/weighted-validator": "^5.4.6",
+    "@zerodev/weighted-validator": "^5.5.0",
     "viem": "^2.28.0"
   },
   "devDependencies": {

@@ -5,22 +5,23 @@ import {
 } from "@zerodev/sdk"
 import { http, createPublicClient, zeroAddress } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
-import { getEntryPoint, KERNEL_V3_1 } from "@zerodev/sdk/constants"
+import { getEntryPoint, KERNEL_V3_3 } from "@zerodev/sdk/constants"
 import {
   createWeightedKernelAccountClient,
   createWeightedValidator,
   toECDSASigner,
+  WeightedValidatorContractVersion,
   type WeightedSigner,
 } from "@zerodev/weighted-validator"
+import { sepolia } from "viem/chains"
 
-if (!process.env.ZERODEV_RPC) {
-  throw new Error("ZERODEV_RPC is not set")
-}
-
+const chain = sepolia;
+const kernelVersion = KERNEL_V3_3;
+const validatorContractVersion = WeightedValidatorContractVersion.V0_0_2_PATCHED;
+const ZERODEV_RPC = `https://rpc.zerodev.app/api/v3/${process.env.ZERODEV_API_KEY}/chain/${chain.id}`;
 const publicClient = createPublicClient({
-  transport: http(process.env.ZERODEV_RPC),
-  chain: sepolia,
+  transport: http(),
+  chain: chain,
 })
 
 // Generate or use existing private keys for signers
@@ -49,7 +50,8 @@ const main = async () => {
           { publicKey: ecdsaSigner2.account.address, weight: 50 }
         ]
       },
-      kernelVersion: KERNEL_V3_1
+      kernelVersion,
+      validatorContractVersion
     })
 
     const account = await createKernelAccount(publicClient, {
@@ -57,20 +59,20 @@ const main = async () => {
       plugins: {
         sudo: multiSigValidator
       },
-      kernelVersion: KERNEL_V3_1
+      kernelVersion
     })
 
     console.log(`Account address: ${account.address}`)
 
     const paymasterClient = createZeroDevPaymasterClient({
-      chain: sepolia,
-      transport: http(process.env.ZERODEV_RPC),
+      chain: chain,
+      transport: http(ZERODEV_RPC),
     })
 
     return createWeightedKernelAccountClient({
       account,
-      chain: sepolia,
-      bundlerTransport: http(process.env.ZERODEV_RPC),
+      chain: chain,
+      bundlerTransport: http(ZERODEV_RPC),
       paymaster: paymasterClient
     })
   }
@@ -90,12 +92,14 @@ const main = async () => {
 
   // Get approval from first signer
   const signature1 = await client1.approveUserOperation({
-    callData
+    callData,
+    validatorContractVersion
   })
 
   // Get approval from second signer
   const signature2 = await client2.approveUserOperation({
-    callData
+    callData,
+    validatorContractVersion
   })
 
   // Send the transaction with both signatures
@@ -112,6 +116,7 @@ const main = async () => {
 
   console.log("Transaction hash:", receipt.receipt.transactionHash)
   console.log("UserOperation completed!")
+  process.exit(0)
 }
 
 main().catch(console.error) 
