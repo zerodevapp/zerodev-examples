@@ -30,6 +30,7 @@ const signer1 = privateKeyToAccount(generatePrivateKey());
 const signer2 = privateKeyToAccount(generatePrivateKey());
 
 const sessionPrivateKey = generatePrivateKey();
+const sessionSigner = privateKeyToAccount(sessionPrivateKey);
 const entryPoint = getEntryPoint("0.7");
 const chain = sepolia;
 const ZERODEV_RPC = `https://rpc.zerodev.app/api/v3/${process.env.ZERODEV_PROJECT_ID}/chain/${chain.id}`;
@@ -104,8 +105,9 @@ const createSessionKey = async () => {
   });
 
 
+  const sessionKeyEmptyAccount = addressToEmptyAccount(sessionSigner.address);
   const sessionKeySigner = await toECDSASigner({
-    signer: privateKeyToAccount(sessionPrivateKey)
+    signer: sessionKeyEmptyAccount
   });
 
   const sessionKeyValidator = await toPermissionValidator(publicClient, {
