@@ -11,6 +11,7 @@
     "@zerodev/remote-signer": "^5.3.3",
     "@zerodev/sdk": "^5.5.2",
     "@zerodev/session-key": "^5.5.3",
+    "@zerodev/earn": "1.0.0-beta.0",
     "@zerodev/weighted-ecdsa-validator": "^5.4.3",
     "@zerodev/weighted-validator": "^5.5.1",
     "viem": "^2.28.0"

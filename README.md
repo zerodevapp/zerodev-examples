@@ -35,6 +35,8 @@ Follow these steps to get this project up and running on your local machine:
    
    If you want to run the examples on another network, make sure to update the `chain` object in the code (some examples use the chain object in [./utils.ts](./utils.ts) so you'd need to update it there).
 
+   A few folders need extra variables and ship their own `.env.example` (add those to your `.env`). The [ZeroDev Earn](./earn) examples are also the exception on networks: they run on Base and Arbitrum mainnet.
+
 4. **Run the script**
 
    Run any of the example scripts using the following command:
