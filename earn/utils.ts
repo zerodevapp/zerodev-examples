@@ -34,11 +34,7 @@ function requireEnv(name: string): string {
   return value;
 }
 
-// ZeroDev Earn runs on mainnets, so these examples do too, with real funds. Keep amounts small.
-// Two chains cover every flow here: fund on Base, execute on Base (same-chain) or Arbitrum (bridged).
-export const SRC_CHAIN = base;
-export const DEST_CHAIN = arbitrum;
-
+// These examples run on mainnet with real funds. Keep the amounts small.
 const CHAINS: Chain[] = [base, arbitrum];
 
 export function chainFor(chainId: number): Chain {
@@ -49,23 +45,16 @@ export function chainFor(chainId: number): Chain {
 
 export const signer = privateKeyToAccount(requireEnv("PRIVATE_KEY") as Hex);
 
-/**
- * The SDK is a thin HTTP client: no signer, no RPC, nothing on-chain. `projectId` is the only
- * required config — `serverUrl` defaults to ZeroDev's hosted server.
- */
+// The SDK is a thin HTTP client: no signer, no RPC, nothing on-chain.
 export const earn = createEarnClient({
   projectId: requireEnv("ZERODEV_PROJECT_ID"),
 });
 
-/** Public client on a chain. Swap `http()` for your own RPC if the public one rate-limits you. */
-export const publicClientFor = (chainId: number) =>
+const publicClientFor = (chainId: number) =>
   createPublicClient({ chain: chainFor(chainId), transport: http() });
 
-/**
- * First vault in a listing that actually takes deposits right now, with the preflight that proved it.
- * Worth doing before quoting: a listing can look healthy while the vault's on-chain deposit cap is 0
- * (a Morpho vault whose curator emptied the supply queue), and only the on-chain read sees that.
- */
+// First vault in a listing that takes deposits right now. A listing can look healthy while the
+// vault's on-chain deposit cap is 0, and only preflight's on-chain read sees that.
 export async function pickDepositableVault(
   vaults: Vault[],
   owner: Address,
@@ -76,7 +65,7 @@ export async function pickDepositableVault(
       owner,
       destChainId: vault.chainId,
       vaultId: vault.address,
-      // Preflight amounts are base units, unlike the display units a deposit takes.
+      // preflight takes base units, unlike the display units a deposit takes
       amount: parseUnits(amount, vault.asset.decimals).toString(),
     });
     if (!preflight.depositsDisabled) return { vault, preflight };
@@ -85,7 +74,7 @@ export async function pickDepositableVault(
   throw new Error("no vault in this listing is accepting deposits");
 }
 
-/** Send a batch of quote calls from a plain EOA, in order, waiting for each receipt. */
+// Send the quote's calls from a plain EOA, in order, waiting for each receipt.
 export async function sendCallsWithEoa(
   calls: OnChainCall[],
   chainId: number
@@ -110,10 +99,7 @@ export async function sendCallsWithEoa(
   return hashes;
 }
 
-/**
- * Kernel account client on `chainId`. ZERODEV_RPC is the bundler + paymaster endpoint, so it has to
- * belong to a project on that same chain.
- */
+// ZERODEV_RPC is the bundler + paymaster endpoint, so it must belong to a project on `chainId`.
 export async function getKernelClient(chainId: number) {
   const chain = chainFor(chainId);
   const zerodevRpc = requireEnv("ZERODEV_RPC");
@@ -141,7 +127,7 @@ export async function getKernelClient(chainId: number) {
     chain,
     bundlerTransport: http(zerodevRpc),
     client: publicClient,
-    // Drop `paymaster` to have the account pay its own gas.
+    // drop `paymaster` to have the account pay its own gas
     paymaster: {
       getPaymasterData: (userOperation) =>
         paymasterClient.sponsorUserOperation({ userOperation }),
@@ -149,7 +135,7 @@ export async function getKernelClient(chainId: number) {
   });
 }
 
-/** `decimals` of the funding token — quote amounts are base-unit strings, never numbers. */
+// `decimals` of the funding token. Quote amounts are base-unit strings, never numbers.
 export function printQuote(quote: Quote, decimals: number) {
   console.log(`Quote ${quote.quoteId} (expires ${quote.expiresAt})`);
   console.log("  fund this SRA:", quote.sra);
@@ -160,7 +146,7 @@ export function printQuote(quote: Quote, decimals: number) {
   if (quote.estimatedShares) console.log("  estimated shares:", quote.estimatedShares);
   if (quote.vaultApy != null) console.log("  vault APY:", `${quote.vaultApy}%`);
   // Fees are route-token base units, not USD. `totalFeeAmount` is null when the chains charge in
-  // different tokens — show the per-chain rows then.
+  // different tokens, so show the per-chain rows then.
   const { totalFeeAmount, totalFeeToken, perChain } = quote.estimatedFees;
   if (totalFeeAmount) console.log("  fees:", totalFeeAmount, "of", totalFeeToken);
   else console.log("  fees per chain:", JSON.stringify(perChain));
@@ -169,8 +155,8 @@ export function printQuote(quote: Quote, decimals: number) {
   );
 }
 
-/** Typed errors carry a stable `code` and `details` — branch on the code, not the message. */
-export function explainError(e: unknown): string {
+// Typed errors carry a stable `code` and `details`. Branch on the code, not the message.
+function explainError(e: unknown): string {
   if (e instanceof EarnError) {
     const details = e.details ? ` ${JSON.stringify(e.details)}` : "";
     const requestId = e.requestId ? ` (requestId ${e.requestId})` : "";
@@ -179,7 +165,6 @@ export function explainError(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-/** Run a script's `main`, printing typed SDK errors readably. */
 export function run(main: () => Promise<void>) {
   main()
     .then(() => process.exit(0))

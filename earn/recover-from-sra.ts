@@ -1,18 +1,16 @@
 // Recover funds that reached the SRA but never made it into the vault. If the destination deposit
-// reverts, the tokens rest in the SRA and the owner can always pull them back. This is the escape
-// hatch, there is no on-chain fallback.
+// reverts, the tokens rest in the SRA and the owner can pull them back at any time.
 //
 //   npx ts-node earn/recover-from-sra.ts <sra>
 
 import "dotenv/config";
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import { earn, run, sendCallsWithEoa } from "./utils";
 
 async function main() {
   const sra = process.argv[2] as Address;
   if (!sra) throw new Error("pass the SRA address from the quote");
 
-  // What the SRA was created with: owner, execution chain, slippage, the stored actions.
   const info = await earn.getSraInfo({ sra });
   console.log("owner:", info.owner);
   console.log("execution chain:", info.executionChainId, "slippage:", info.slippage, "bps");
@@ -20,7 +18,7 @@ async function main() {
   const status = await earn.getStatus(sra);
   console.log("state:", status.state, status.failureReason ?? "");
 
-  // Only deposits that landed without executing are recoverable — the rest are already in the vault.
+  // Only deposits that landed without executing are recoverable. The rest are already in the vault.
   const tokens: { chainId: number; token: Address }[] = [];
   const seen = new Set<string>();
   for (const deposit of status.deposits) {
@@ -35,14 +33,13 @@ async function main() {
   const { data, receiver } = await earn.getWithdrawCalls({ sra, tokens });
   console.log("recovering", tokens.length, "token(s) to", receiver);
 
-  // Owner-signed, grouped per chain — funds can be stranded on the source chain, the destination
-  // chain, or both.
+  // Grouped per chain: funds can be stranded on the source chain, the destination chain, or both.
   for (const group of data) {
     console.log("chain", group.chainId);
     await sendCallsWithEoa(
       group.calls.map((call) => ({
         to: call.to,
-        data: (call.data ?? "0x") as Hex,
+        data: call.data ?? "0x",
         value: call.value,
       })),
       group.chainId

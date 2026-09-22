@@ -28,8 +28,8 @@ async function main() {
   const { vault } = await pickDepositableVault(vaults, owner, AMOUNT);
   console.log("Vault:", vault.name ?? vault.id, `(${vault.protocol}, chain ${vault.chainId})`);
 
-  // `depositIntoVault` is the escape hatch for any protocol: no facade binds `protocol`, so pass it.
-  // Prefer a facade (earn.morpho.deposit, earn.aave.deposit, ...) when one exists.
+  // `depositIntoVault` works with any protocol, so `protocol` is passed explicitly. Prefer a facade
+  // (earn.morpho.deposit, earn.aave.deposit, ...) when one exists.
   const quote = await earn.depositIntoVault({
     owner,
     amount: AMOUNT,
@@ -37,15 +37,14 @@ async function main() {
     srcChainId: base.id,
     into: vault,
     protocol: vault.protocol,
-    // Slippage in bps, default 100 (1%). Cross-chain quotes are rejected when it cannot cover the
-    // route fees — the SLIPPAGE_TOO_LOW error then carries `details.minSlippageBps` to retry with.
+    // Slippage in bps, default 100 (1%). See deposit-aave.ts for the SLIPPAGE_TOO_LOW retry.
     slippage: 100,
   });
   printQuote(quote, vault.asset.decimals);
   if (!quote.sra) throw new Error("deposit quote came back without an SRA");
 
-  // Every call in a quote is owner-signed on the source chain. There is no destination transaction
-  // to send: the destination calls are baked into the SRA and run by the relayer on arrival.
+  // There is no destination transaction to send: those calls are stored in the SRA and run by the
+  // relayer when the funds arrive.
   console.log("\nFunding the SRA on Base...");
   await sendCallsWithEoa(quote.transaction.calls, quote.transaction.chainId);
 
@@ -61,8 +60,8 @@ async function main() {
   });
   await watcher.done;
 
-  // If the destination deposit ever reverts, the bridged tokens rest in the SRA and the owner pulls
-  // them back — see recover-from-sra.ts.
+  // If the destination deposit reverts, the bridged tokens rest in the SRA and the owner pulls them
+  // back. See recover-from-sra.ts.
 }
 
 run(main);

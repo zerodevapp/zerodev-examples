@@ -10,7 +10,6 @@ const AMOUNT = "1";
 
 async function main() {
   const kernelClient = await getKernelClient(base.id);
-  // The kernel account is the owner: it funds the SRA, holds the shares, and receives refunds.
   // Quote for the smart account address, not for the signer behind it.
   const owner = kernelClient.account.address;
   console.log("Kernel account:", owner);
@@ -35,8 +34,7 @@ async function main() {
   if (!quote.sra) throw new Error("deposit quote came back without an SRA");
 
   // `userOp.callData` is the same batch as `transaction.calls`, pre-encoded as a Kernel v3
-  // `executeBatch` — approve and transfer go out in a single user op. A non-Kernel smart account
-  // re-encodes `quote.userOp.calls` in its own batch format instead.
+  // `executeBatch`. A non-Kernel smart account re-encodes `quote.userOp.calls` itself.
   const userOpHash = await kernelClient.sendUserOperation({
     callData: quote.userOp.callData,
   });
@@ -44,14 +42,13 @@ async function main() {
   const receipt = await kernelClient.waitForUserOperationReceipt({ hash: userOpHash });
   console.log("Mined in", receipt.receipt.transactionHash);
 
-  // Polling `getStatus` by hand, as the alternative to `watchStatus`: same data, your own loop and
-  // your own backoff. `watchStatus` is the shorter form, used in the other examples.
+  // Polling `getStatus` by hand, instead of the `watchStatus` used in the other examples.
   for (;;) {
     const status = await earn.getStatus(quote.sra);
     const executed = status.deposits.find((d) => d.execution);
     console.log("state:", status.state, status.failureReason ?? "");
     if (executed) console.log("  shares minted in", executed.execution?.transactionHash);
-    if (status.state !== "PENDING" && status.state !== "BRIDGING" && status.state !== "EXECUTING")
+    if (status.state === "COMPLETED" || status.state === "FAILED" || status.state === "ABANDONED")
       break;
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }

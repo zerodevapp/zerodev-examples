@@ -1,5 +1,5 @@
-// Aave V3 supply. Aave has one pool per chain, so there is no vault to pick: the reserve follows
-// from the token plus the destination chain. Also shows how to react to a typed error.
+// Aave V3 supply. Aave has one pool per chain, so there is no vault to pick, and the typed error
+// from a too-low slippage is retried with the value the server asks for.
 
 import "dotenv/config";
 import { EarnError, TOKENS, type Quote } from "@zerodev/earn";
@@ -27,7 +27,6 @@ async function main() {
     quote = await quoteAaveDeposit(50); // 0.5%
   } catch (e) {
     // Route fees can exceed the slippage budget. The error names the value that would work.
-    // SLIPPAGE_TOO_LOW has no bound subclass, so branch on the code, not on instanceof.
     if (!(e instanceof EarnError) || e.code !== "SLIPPAGE_TOO_LOW") throw e;
     const { minSlippageBps } = e.details as { minSlippageBps: number };
     console.log("slippage too low, retrying with", minSlippageBps, "bps");
@@ -40,7 +39,7 @@ async function main() {
   console.log("\nFunding the SRA...");
   await sendCallsWithEoa(quote.transaction.calls, quote.transaction.chainId);
 
-  // The aTokens land on `owner`, not on the SRA — the position is the user's from the start.
+  // The aTokens land on `owner`, not on the SRA.
   const watcher = earn.watchStatus(quote.sra, {
     onStatusChange: (status) =>
       console.log("status:", status.state, status.failureReason ?? ""),

@@ -1,5 +1,4 @@
-// Exit a vault position. Withdraw is the mirror image of deposit and much smaller: same-chain,
-// owner-signed, no SRA, no bridge, no quote to expire.
+// Exit a vault position: same-chain, owner-signed, no SRA, no bridge, no quote to expire.
 //
 //   npx ts-node earn/withdraw-from-vault.ts <vaultId> [chainId]
 
@@ -15,20 +14,19 @@ async function main() {
 
   const owner = signer.address;
 
-  // Neither `amount` nor `max` is a preview: same on-chain reads and gates, no calls built. This is
-  // how a UI shows the position size before the user picks an amount.
+  // Passing neither `amount` nor `max` is a preview: same on-chain reads, no calls built.
   const preview = await earn.withdrawFromVault({ owner, vaultId, chainId });
   console.log(
     "available now:",
     formatUnits(BigInt(preview.available), preview.decimals),
     preview.assetSymbol
   );
-  // `available` is what can leave right now, not the position size — it already subtracts what the
+  // `available` is what can leave right now, not the position size: it already subtracts what the
   // protocol would refuse (vault caps, Aave health factor, thin reserve liquidity).
   if (preview.available === "0") return console.log("nothing to withdraw");
 
-  // `max: true` uses the protocol's own exit-everything form, so interest accruing between this call
-  // and the signature cannot leave a residue behind. For a partial exit pass display units instead:
+  // `max: true` uses the protocol's own exit-everything form, so interest accruing before the
+  // signature leaves no residue. For a partial exit pass display units instead:
   //   { owner, vaultId, chainId, amount: "0.5" }
   const exit = await earn.withdrawFromVault({ owner, vaultId, chainId, max: true });
   console.log(

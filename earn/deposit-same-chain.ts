@@ -12,11 +12,11 @@ import {
   signer,
 } from "./utils";
 
-// Display units. The server scales by the token's decimals, so no float math here.
+// Display units. The server scales by the token's decimals.
 const AMOUNT = "1";
 
 async function main() {
-  // One address plays every role: it funds, signs, receives the vault shares, and gets any refund.
+  // The owner funds, signs, receives the vault shares, and gets any refund.
   const owner = signer.address;
 
   const { vaults } = await earn.listVaults({
@@ -26,14 +26,12 @@ async function main() {
   });
   if (vaults.length === 0) throw new Error("no Morpho USDC vault on Base");
 
-  // `preflight` checks the vault before a quote is spent on it: asset, deposit cap, resolved route.
   const { vault, preflight } = await pickDepositableVault(vaults, owner, AMOUNT);
   console.log("Vault:", vault.name ?? vault.id, `(${vault.protocol}, chain ${vault.chainId})`);
   console.log("Max deposit:", preflight.maxDeposit ?? "no cap");
 
-  // Same-chain because srcChainId equals the vault's chain. Still an SRA deposit — the funds go to
-  // a routing address and the relayer executes the deposit — there is just no bridge leg.
-  // `destChainId` comes from the vault object.
+  // Same-chain because srcChainId equals the vault's chain. Still an SRA deposit, just no bridge
+  // leg. `destChainId` comes from the vault object.
   const quote = await earn.morpho.deposit({
     owner,
     amount: AMOUNT,
@@ -44,11 +42,11 @@ async function main() {
   printQuote(quote, vault.asset.decimals);
   if (!quote.sra) throw new Error("deposit quote came back without an SRA");
 
-  // The SDK never signs. `transaction.calls` is the owner-signed src-chain batch: send it in order.
+  // The SDK never signs. `transaction.calls` is the owner-signed src-chain batch, sent in order.
   console.log("\nFunding the SRA...");
   await sendCallsWithEoa(quote.transaction.calls, quote.transaction.chainId);
 
-  // That one funding transaction is the user's only signature. Poll until the relayer is done.
+  // That funding transaction is the user's only signature. Poll until the relayer is done.
   const watcher = earn.watchStatus(quote.sra, {
     onStatusChange: (status) =>
       console.log("status:", status.state, status.failureReason ?? ""),

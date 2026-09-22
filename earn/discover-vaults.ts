@@ -12,8 +12,8 @@ async function main() {
   const tokens = await earn.getTokens({ chainId: base.id });
   console.log("Funding tokens on Base:", tokens.map((t) => t.tokenType).join(", "));
 
-  // Filters run server-side against the vault index, so filter here instead of fetching everything.
-  // minTvl defaults to $100k upstream — pass `minTvl: 0` to see smaller vaults.
+  // Filters run server-side, so filter here instead of fetching everything. minTvl defaults to
+  // $100k, so pass `minTvl: 0` to see smaller vaults.
   const { vaults, nextPage } = await earn.listVaults({
     asset: TOKENS.USDC,
     chains: [base.id, arbitrum.id],
@@ -34,20 +34,17 @@ async function main() {
   const [vault] = vaults;
   if (!vault) return;
 
-  // `category` is a discriminant: `maturity` exists only on fixed-yield (Pendle PT) vaults, so
-  // reading it without narrowing is a compile error.
+  // `maturity` exists only on fixed-yield vaults, so narrow on `category` before reading it.
   if (vault.category === "fixed-yield") console.log("matures at", vault.maturity);
 
-  // Detail view: same shape plus longer-window APY and prose. Passing chainId hits the single-vault
-  // endpoint instead of scanning the list.
+  // Passing chainId hits the single-vault endpoint instead of scanning the list.
   const details = await earn.getVault(vault.id, vault.chainId);
   console.log("\nDetails for", details.name ?? details.id);
   console.log("  apy 7d / 30d:", details.apy7day, "/", details.apy30day);
   console.log("  tvl usd:", details.tvlUsd);
   console.log("  asset:", details.asset.symbol, details.asset.address);
 
-  // A `Vault` carries chainId, asset and protocol, so it goes straight into a deposit as `into` —
-  // no re-typing addresses, and `destChainId` is derived from `vault.chainId`.
+  // A `Vault` carries chainId, asset and protocol, so it goes straight into a deposit as `into`.
 }
 
 run(main);
